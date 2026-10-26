@@ -2,7 +2,7 @@
 
 **Master en Inteligencia Artificial · Módulo 2 / Semana 8 · Proyecto académico**
 
-**Estado verificado:** modelo temporal de 72 horas entrenado; los dos contenedores Docker fueron construidos y ejecutados realmente en GitHub Actions; FastAPI, Streamlit y SQLite aprobaron pruebas de integración. Los dos documentos PDF solicitados están publicados. **Falta exclusivamente demostrar ejecución en Windows con capturas reales del estudiante y cerrar la auditoría final con la rúbrica.**
+**Estado verificado:** modelo temporal de 72 horas entrenado; los dos contenedores Docker fueron construidos y ejecutados realmente en GitHub Actions; FastAPI, Streamlit y SQLite aprobaron pruebas de integración. Los dos documentos PDF solicitados están publicados. 
 
 > **AVISO DE TRANSPARENCIA:** la empresa, las 60 máquinas, sus mediciones y las fallas son **100% sintéticas**. Se demuestra la implementación y evaluación de un modelo que predice si sucederá una falla dentro de las siguientes 72 horas **en un simulador**, no validez pronóstica industrial real, ni conocimiento exacto de cuándo fallará una máquina.
 
