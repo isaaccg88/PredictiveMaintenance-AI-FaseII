@@ -68,6 +68,13 @@ with tab2:
     st.subheader("Escenario académico: modificar sensores")
     with st.form("prediction_form"):
         whatif=st.checkbox("Evaluar escenario hipotético con cambios manuales")
+        if whatif:
+            st.warning(
+                "Análisis exploratorio con datos SINTÉTICOS: modificar sensores aislados no "
+                "recalcula sus promedios históricos ni demuestra efectos causales. "
+                "El modelo puede estimar menor riesgo aun al aumentar una lectura. "
+                "No utilizar estos resultados para decisiones reales de mantenimiento."
+            )
         temperature=st.slider("Temperatura °C",0.0,140.0,
                               float(min(140,max(0,telemetry["temperature_c"]))),.5)
         vibration=st.slider("Vibración mm/s",0.0,12.0,
