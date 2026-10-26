@@ -1,0 +1,11 @@
+.git
+.github
+.venv
+__pycache__
+.pytest_cache
+*.pyc
+runtime
+results
+data/generated
+*.md
+!README.md
