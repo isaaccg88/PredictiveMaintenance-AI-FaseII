@@ -4,7 +4,8 @@ on:
   push:
     paths:
       - '.github/workflows/validate-deploy.yml'
-      - 'src/**'
+      - 'src/simulation.py'
+      - 'src/train.py'
       - 'app/**'
       - 'tests/**'
       - 'docker/**'
