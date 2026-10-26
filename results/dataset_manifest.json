@@ -1,0 +1,56 @@
+{
+  "synthetic": true,
+  "not_real_industrial_data": true,
+  "simulation": "wear-dependent stochastic failure hazard, maintenance and downtime",
+  "seed": 202608,
+  "machines": 60,
+  "pilot_machines": 12,
+  "steps_per_machine": 2160,
+  "measurement_interval_hours": 6,
+  "horizon_hours": 72,
+  "horizon_steps": 12,
+  "rows": 129600,
+  "failure_events": 318,
+  "positive_observable_records": 3809,
+  "sha256_csv": "0f7d322b0d0cc55bb4cb8e709733257c8f17e9dbc3eabe54424d7e3ae8dc8f77",
+  "splits": {
+    "train": {
+      "rows": 66136,
+      "positives": 1847
+    },
+    "validation": {
+      "rows": 14797,
+      "positives": 511
+    },
+    "test_temporal": {
+      "rows": 19906,
+      "positives": 648
+    },
+    "test_unseen_machines": {
+      "rows": 4991,
+      "positives": 144
+    }
+  },
+  "model_features": [
+    "temperature_c",
+    "vibration_mm_s",
+    "pressure_bar",
+    "rpm",
+    "torque_nm",
+    "wear_index",
+    "load_pct",
+    "hours_since_service",
+    "temperature_avg_24h",
+    "vibration_avg_24h",
+    "wear_delta_72h",
+    "machine_type"
+  ],
+  "training_policy": "only operating states, future labels censored, 12-step temporal purge",
+  "generalization_policy": "12 pilot machines completely excluded from model fitting",
+  "known_limitations": [
+    "Artificial wear process intentionally correlates with simulated events.",
+    "Predictive metrics on synthetic data do not demonstrate industrial effectiveness.",
+    "Labels within 72h of the series end are censored, never assumed negative.",
+    "Train/validation/test are temporal and the pilot set uses unseen machines."
+  ]
+}

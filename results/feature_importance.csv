@@ -1,0 +1,15 @@
+feature,importance
+numeric__wear_index,0.2611907649033719
+numeric__vibration_avg_24h,0.17345888993788305
+numeric__hours_since_service,0.1510785342640932
+numeric__vibration_mm_s,0.09061319073442498
+numeric__temperature_avg_24h,0.09007945850465186
+numeric__temperature_c,0.06141961792109385
+numeric__wear_delta_72h,0.048172957594006846
+numeric__pressure_bar,0.041935467452688925
+numeric__rpm,0.021526718518077626
+numeric__torque_nm,0.019943834858694887
+numeric__load_pct,0.016109275347471256
+categorical__machine_type_B,0.009202911205901847
+categorical__machine_type_A,0.008726153594008626
+categorical__machine_type_C,0.006542225163631085
