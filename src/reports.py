@@ -374,6 +374,41 @@ def validation():
         "Predictive Maintenance AI Fase II</link>. "
         "ChatGPT ayudó a construir y revisar código, pruebas y documentación; "
         "todas las métricas provienen de ejecuciones reproducibles.")
+    # Capturas AUTÉNTICAS del entorno local Windows; nunca fabricarlas.
+    evidence=ROOT/"docs/local_evidence"
+    requested=[
+        (evidence/"Docker_Containers.png",
+         "Evidencia local 1. Docker Desktop: API y dashboard funcionando."),
+        (evidence/"Dashboard_Piloto.png",
+         "Evidencia local 2. Interfaz real de 12 máquinas, alertas y riesgo a 72 horas.")
+    ]
+    present=[p.is_file() for p,_ in requested]
+    if any(present) and not all(present):
+        raise FileNotFoundError(
+          "Para completar evidencias locales, subir AMBAS capturas PNG: "
+          "Docker_Containers.png y Dashboard_Piloto.png."
+        )
+    if all(present):
+        page(st)
+        sub(st,"13. Evidencias visuales auténticas de ejecución local")
+        para_add(st,"Las siguientes imágenes provienen de la aplicación ejecutada "
+            "por el estudiante en Docker Desktop Windows. Se conservan en "
+            "el repositorio como archivos originales sin modificación de contenido. "
+            "La verificación automática de GitHub no sustituye estas pruebas.")
+        for filename,label in requested:
+            header=filename.read_bytes()[:8]
+            if header!=bytes.fromhex("89504e470d0a1a0a"):
+                raise ValueError("Captura local no es un PNG: "+str(filename))
+            width,height=ImageReader(str(filename)).getSize()
+            if width<760 or height<400:
+                raise ValueError("Captura demasiado pequeña: "+str(filename))
+            fig(st,filename,label,maxh=8.2*cm)
+        swagger=evidence/"Swagger_API.png"
+        if swagger.is_file():
+            page(st)
+            sub(st,"14. Evidencia adicional del contrato OpenAPI")
+            fig(st,swagger,"Evidencia local 3. Swagger /docs y los endpoints funcionales.",
+                maxh=16.0*cm)
     return st
 
 def main():
