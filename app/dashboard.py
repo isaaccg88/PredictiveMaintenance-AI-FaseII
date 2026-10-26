@@ -3,7 +3,7 @@ import os
 import requests
 import pandas as pd
 import streamlit as st
-from app.time_display import format_request_local, format_simulated_utc
+from time_display import format_request_local, format_simulated_utc
 
 API=os.getenv("API_URL","http://localhost:8000").rstrip("/")
 st.set_page_config(page_title="Predictive Maintenance AI | 72h",page_icon="🏭",
