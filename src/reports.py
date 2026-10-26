@@ -378,7 +378,7 @@ def validation():
     evidence=ROOT/"docs/local_evidence"
     requested=[
         (evidence/"Docker_Containers.png",
-         "Evidencia local 1. Docker Desktop: API y dashboard funcionando."),
+         "Evidencia local 1. Docker Compose en Windows: API y web construidos y saludables."),
         (evidence/"Dashboard_Piloto.png",
          "Evidencia local 2. Interfaz real de 12 máquinas, alertas y riesgo a 72 horas.")
     ]
@@ -391,7 +391,7 @@ def validation():
     if all(present):
         page(st)
         sub(st,"13. Evidencias visuales auténticas de ejecución local")
-        para_add(st,"Las siguientes imágenes provienen de la aplicación ejecutada "
+        para_add(st,"Las siguientes capturas provienen de la aplicación ejecutada "
             "por el estudiante en Docker Desktop Windows. Se conservan en "
             "el repositorio como archivos originales sin modificación de contenido. "
             "La verificación automática de GitHub no sustituye estas pruebas.")
