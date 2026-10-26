@@ -3,6 +3,7 @@ import os
 import requests
 import pandas as pd
 import streamlit as st
+from app.time_display import format_request_local, format_simulated_utc
 
 API=os.getenv("API_URL","http://localhost:8000").rstrip("/")
 st.set_page_config(page_title="Predictive Maintenance AI | 72h",page_icon="🏭",
@@ -46,6 +47,7 @@ tab1,tab2,tab3=st.tabs(["Flota y riesgos","Evaluación por máquina","Historial 
 with tab1:
     view=df[["machine_id","risk_level","probability_72h","temperature_c",
              "vibration_mm_s","wear_index","timestamp_simulated"]].copy()
+    view["timestamp_simulated"]=view["timestamp_simulated"].map(format_simulated_utc)
     view.columns=["Máquina","Riesgo","Probabilidad 72h","Temp °C",
                   "Vibración mm/s","Desgaste","Fecha simulada UTC"]
     st.dataframe(view.sort_values("Probabilidad 72h",ascending=False),
@@ -58,7 +60,7 @@ with tab2:
     mid=st.selectbox("Selecciona una máquina",[x["machine_id"] for x in machines])
     payload=call("GET",f"/telemetry/{mid}")
     telemetry=payload["machine"]
-    st.write(f"Última lectura simulada: **{telemetry['timestamp']}**")
+    st.write(f"Última lectura SIMULADA (UTC): **{format_simulated_utc(telemetry['timestamp'])}**")
     col1,col2,col3=st.columns(3)
     col1.metric("Temperatura",f"{telemetry['temperature_c']:.1f} °C")
     col2.metric("Vibración",f"{telemetry['vibration_mm_s']:.2f} mm/s")
@@ -87,9 +89,24 @@ with tab2:
 with tab3:
     hist=call("GET","/predictions?limit=100")
     if hist:
-        st.dataframe(pd.DataFrame(hist),hide_index=True,use_container_width=True)
+        history_view=pd.DataFrame(hist)
+        history_view["requested_at_utc"]=history_view["requested_at_utc"].map(format_request_local)
+        history_view["observed_simulated_at"]=history_view["observed_simulated_at"].map(format_simulated_utc)
+        history_view=history_view.rename(columns={
+            "id":"Registro",
+            "machine_id":"Máquina",
+            "observed_simulated_at":"Lectura SIMULADA (UTC)",
+            "requested_at_utc":"Solicitud real (CDMX)",
+            "probability_72h":"Probabilidad 72h",
+            "risk_level":"Riesgo",
+            "alert":"Alerta",
+            "source":"Origen",
+        })
+        st.dataframe(history_view,hide_index=True,use_container_width=True)
     else:
         st.info("Aún no hay inferencias guardadas. Evalúa una máquina para generar la primera.")
     st.markdown("**API integrada:** [Swagger/OpenAPI](http://localhost:8000/docs) · "
                 "**Repositorio:** [Fase II](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII)")
-    st.caption("El historial registra fecha simulada y momento real de consulta de manera separada.")
+    st.caption("La lectura de sensores corresponde a tiempo SIMULADO (UTC). "
+               "La solicitud real se muestra en hora de Ciudad de México "
+               "(America/Mexico_City); la API y SQLite conservan el valor UTC original.")
