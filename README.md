@@ -1,6 +1,6 @@
 # Predictive Maintenance AI — Fase II: Ejecución
 
-**Maestría en Inteligencia Artificial · Módulo 2 / Semana 8 · Proyecto académico**
+**Master en Inteligencia Artificial · Módulo 2 / Semana 8 · Proyecto académico**
 
 **Estado verificado:** modelo temporal de 72 horas entrenado; los dos contenedores Docker fueron construidos y ejecutados realmente en GitHub Actions; FastAPI, Streamlit y SQLite aprobaron pruebas de integración. Los dos documentos PDF solicitados están publicados. **Falta exclusivamente demostrar ejecución en Windows con capturas reales del estudiante y cerrar la auditoría final con la rúbrica.**
 
