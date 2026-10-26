@@ -4,7 +4,7 @@ Esta carpeta guarda **capturas reales**, tomadas por el estudiante desde su comp
 
 ## Capturas solicitadas
 
-1. **`Docker_Containers.png`** — Docker Desktop, pestaña Containers, con los dos servicios de `predictive-maintenance-faseii` en ejecución; idealmente API healthy y web running.
+1. **`Docker_Containers.png`** — captura auténtica de PowerShell **o** Docker Desktop que muestre los dos servicios `predictive-maintenance-faseii` iniciados y ambos `Healthy`. La salida de `docker compose up --build -d --wait` es válida.
 2. **`Dashboard_Piloto.png`** — navegador abierto en `http://localhost:8501`, mostrando el tablero Predictive Maintenance AI, las doce máquinas simuladas y los indicadores de riesgo a 72 horas.
 3. **`Swagger_API.png`** (opcional) — navegador `http://localhost:8000/docs` mostrando los endpoints de FastAPI.
 
