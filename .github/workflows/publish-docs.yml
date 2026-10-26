@@ -1,0 +1,80 @@
+name: Fase II - Manual cloud y validación PDF
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-docs.yml'
+      - 'src/reports.py'
+      - 'results/evaluation.json'
+      - 'docs/local_evidence/*.png'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: faseii-pdf-documents
+  cancel-in-progress: true
+
+jobs:
+  reports:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements-train.txt
+      - name: Instalar dependencias fijadas y librerías PDF
+        run: |
+          python -m pip install -r requirements-train.txt
+          python -m pip install reportlab==4.4.4 PyMuPDF==1.26.5
+      - name: Generar manual de despliegue y reporte de validación
+        run: python -m src.reports
+      - name: Auditar estructura y paginación PDF
+        run: |
+          python - <<'PY'
+          import fitz
+          from pathlib import Path
+          reports=[
+              Path("docs/Manual_Despliegue_Nube_FaseII.pdf"),
+              Path("docs/Documento_Validacion_Pruebas_FaseII.pdf")
+          ]
+          for p in reports:
+              assert p.is_file() and p.stat().st_size>18000,p
+              doc=fitz.open(p)
+              pages=len(doc)
+              text=" ".join(page.get_text() for page in doc)
+              print(p.name,pages,"páginas",p.stat().st_size,"bytes",
+                    "imágenes",sum(len(page.get_images()) for page in doc))
+              assert 4<=pages<=9,(p,pages)
+              assert "72" in text and "Fase II" in text and "Docker" in text
+              if "Validacion" in p.name:
+                  assert sum(len(page.get_images()) for page in doc)>=2
+                  assert "no vistas" in text.lower()
+              else:
+                  assert "cloud" in text.lower() and "SQLite" in text
+              doc.close()
+          print("PDF DOCUMENTACIÓN: verificaciones completas")
+          PY
+      - name: Adjuntar documentos PDF verificables
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: faseii-manuales-verdaderos
+          path: |
+            docs/Manual_Despliegue_Nube_FaseII.pdf
+            docs/Documento_Validacion_Pruebas_FaseII.pdf
+          if-no-files-found: warn
+      - name: Publicar ambos PDF en main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/Manual_Despliegue_Nube_FaseII.pdf docs/Documento_Validacion_Pruebas_FaseII.pdf
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: dos informes PDF generados desde métricas y CI reales"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
