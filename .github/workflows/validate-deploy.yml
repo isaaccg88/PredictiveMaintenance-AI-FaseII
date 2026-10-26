@@ -1,0 +1,106 @@
+name: Fase II - Modelo 72 horas + Docker end-to-end
+
+on:
+  push:
+    paths:
+      - '.github/workflows/validate-deploy.yml'
+      - 'src/**'
+      - 'app/**'
+      - 'tests/**'
+      - 'docker/**'
+      - 'requirements-*.txt'
+      - 'compose.yaml'
+      - '.dockerignore'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: faseii-integration
+  cancel-in-progress: true
+
+jobs:
+  synthetic-to-docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout Fase II
+        uses: actions/checkout@v4
+      - name: Python 3.11 para datos y ML
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Instalar dependencias reproducibles
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-train.txt
+      - name: Ejecutar pruebas de separación temporal y etiquetas 72 horas
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Crear 60 máquinas sintéticas y entrenar modelo futuro 72 horas
+        run: python -m src.train
+      - name: Auditar artefactos reales antes de Docker
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import pandas as pd
+          a=Path("artifacts")
+          r=Path("results")
+          m=json.loads((r/"dataset_manifest.json").read_text())
+          e=json.loads((r/"evaluation.json").read_text())
+          d=json.loads((a/"model_metadata.json").read_text())
+          p=json.loads((a/"pilot_snapshot.json").read_text())
+          assert m["rows"]==129600 and m["machines"]==60
+          assert m["horizon_hours"]==72 and m["horizon_steps"]==12
+          assert len(p["machines"])==12
+          assert d["threshold_selected_on"]=="validation"
+          assert e["metrics"]["test_temporal"]["samples"]>1000
+          assert e["metrics"]["test_unseen_machines"]["samples"]>1000
+          assert m["splits"]["train"]["positives"]>50
+          assert m["splits"]["validation"]["positives"]>10
+          assert m["splits"]["test_unseen_machines"]["positives"]>10
+          assert (a/"risk72h_model.joblib").stat().st_size>10000
+          assert len(pd.read_csv(r/"model_metrics.csv"))==2
+          print("AUDITORÍA DE MODELO 72 HORAS: PASS")
+          print(pd.read_csv(r/"model_metrics.csv").to_string(index=False))
+          PY
+      - name: Validar configuración Docker Compose
+        run: docker compose config -q
+      - name: Construir y ejecutar frontend + backend en Docker
+        run: docker compose up --build -d --wait
+      - name: Integración HTTP real, validaciones y persistencia SQLite
+        run: python -m tests.integration
+      - name: Guardar evidencia del test con salud de contenedores
+        if: always()
+        run: |
+          mkdir -p evidence
+          docker compose ps --format json > evidence/compose_ps.json || true
+          docker compose logs --no-color > evidence/container_logs.txt || true
+      - name: Exportar evidencia completa del experimento a GitHub Actions
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: faseii-72h-dataset-model-and-docker-evidence
+          path: |
+            data/generated/
+            artifacts/
+            results/
+            evidence/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Bajar servicios Docker de runner
+        if: always()
+        run: docker compose down
+      - name: Publicar modelo verificable, métricas y piloto en main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add artifacts/risk72h_model.joblib artifacts/pilot_snapshot.json artifacts/model_metadata.json
+          git add results/ data/generated/telemetry_sample.csv
+          if ! git diff --cached --quiet; then
+            git commit -m "results: validación 72h, artefacto serializado y pruebas Docker verificadas"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
