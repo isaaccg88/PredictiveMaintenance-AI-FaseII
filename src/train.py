@@ -75,7 +75,7 @@ def event_lead_time(full,partition,p,threshold):
             (full.timestamp>=start+pd.Timedelta(hours=72))&
             (full.timestamp<=stops[machine_id]),"timestamp"
         ]
-        alarms=per_machine.get(machine_id,pd.DatetimeIndex([]))
+        alarms=per_machine.get(machine_id,pd.DatetimeIndex([],tz="UTC"))
         for event_time in events:
             prior=alarms[(alarms>=event_time-pd.Timedelta(hours=72))&
                           (alarms<event_time)]
