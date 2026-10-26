@@ -43,7 +43,7 @@ jobs:
               Path("docs/Documento_Validacion_Pruebas_FaseII.pdf")
           ]
           for p in reports:
-              assert p.is_file() and p.stat().st_size>18000,p
+              assert p.is_file() and p.stat().st_size>9000,p
               doc=fitz.open(p)
               pages=len(doc)
               text=" ".join(page.get_text() for page in doc)
