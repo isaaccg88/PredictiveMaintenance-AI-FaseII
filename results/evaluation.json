@@ -87,6 +87,6 @@
       "mean_first_alert_lead_time_hours": 59.25
     }
   },
-  "elapsed_seconds": 20.66,
+  "elapsed_seconds": 20.11,
   "caution": "Metrics are only meaningful within this synthetic generator; no industrial validation"
 }
