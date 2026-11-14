@@ -138,6 +138,56 @@ El generador V2 produce **129,600 observaciones sintéticas** de 60 máquinas, c
 | Drift | Population Stability Index (PSI) de temperatura | Detectar lotes con distribución alterada |
 | Alertas deduplicadas | EMITTED / SUPPRESSED_DUPLICATE / RESOLVED | Minimizar ruido y evitar escalaciones redundantes |
 
+### Línea base (baseline) de monitoreo: referencia previa a los incidentes
+
+**Esta es la tabla de referencia para interpretar todo el laboratorio.** Se estableció una ventana saludable **antes de inyectar cualquier falla**. Posteriormente se aplicó un incidente controlado, se evaluaron los SLI contra los objetivos SLO y se ejecutó el runbook correspondiente. Finalmente se midió una nueva ventana para comprobar recuperación.
+
+**Origen trazable:** [`actividad8/evidence/incidents.json`](actividad8/evidence/incidents.json) para las mediciones HTTP, los estados de alerta y el PSI; [`actividad8/results/evaluation_v2.json`](actividad8/results/evaluation_v2.json) para la calidad del modelo. Los números de esta tabla corresponden a **una corrida de referencia del 14 de noviembre de 2026**, no necesariamente a cada ejecución posterior de GitHub Actions. La aplicación conserva el registro histórico del laboratorio separado de las mediciones vivas de la API local.
+
+#### Tabla 1. Baseline de métricas operativas, umbrales y comparación con incidentes
+
+| Indicador / SLI | Baseline observado (antes) | Objetivo o condición de alerta | Durante la falla | Después del runbook | Interpretación |
+|---|---:|---|---:|---:|---|
+| Disponibilidad HTTP | **100%** | SLO ≥99%; alerta P1 si <99% | 100% | 100% | La degradación simulada no produce HTTP 5xx; el servicio permanece disponible |
+| Errores HTTP 5xx | **0 de 12 (0%)** | Alerta P1 si >1% de solicitudes elegibles | 0 de 12 (0%) | 0 de 12 (0%) | La falla afecta oportunidad, no disponibilidad |
+| Oportunidad HTTP (≤500 ms, respuesta 2xx) | **12/12 (100%)** | SLO ≥99%; alerta P2 si <99% | 0/12 (0%) | 12/12 (100%) | **INC-01:** incumplimiento y recuperación medidos |
+| Latencia p95 HTTP | **35.8922 ms** | Límite diagnóstico 500 ms; la alerta operativa usa el SLI de oportunidad | 689.2183 ms | 37.2224 ms | **INC-01:** efecto y retiro de la demora experimental |
+| Consumo del error budget de oportunidad | **0%** | 0.12 errores equivalentes permitidos en 12 solicitudes (SLO 99%) | 10,000% | 0% | El incidente agota más de 100 veces el presupuesto de **su ventana**; el historial no se borra al recuperar |
+| PSI de temperatura | **0.0711** | Alerta P2 si PSI >0.20 con al menos 100 observaciones | 10.3608 | 0.0565 | **INC-02:** cambio pronunciado de distribución y restauración del lote |
+| CPU del servicio | **No establecido** | Regla P2 si CPU >85% | No simulado | No evaluado | Se prueba la regla; el muestreo existente corresponde al **runner**, no al contenedor de FastAPI |
+
+**Condiciones de medición:** el incidente HTTP se midió con ventanas de **12 solicitudes POST /predict** contra FastAPI real del laboratorio; el runbook verificó dos ventanas saludables consecutivas. Para PSI se comparó una distribución de referencia de sensores sintéticos contra lotes de **450 observaciones**. El laboratorio incluye calentamiento y reintentos registrados si la primera ventana no es estable. **No se considera sana una ventana sin muestras suficientes.**
+
+#### Tabla 2. Baseline de calidad del modelo V2 (offline, sin etiquetas operativas en vivo)
+
+| Métrica de calidad | Baseline del piloto V2 | Umbral de monitoreo definido | Estado de su evaluación |
+|---|---:|---|---|
+| Precision | **72.38%** | Sin umbral automático configurado | Referencia de calidad offline |
+| Recall por ventana | **78.28%** | Sin umbral automático configurado | Referencia de calidad offline |
+| Recall por evento | **88.57% (31/35)** | Sin umbral automático configurado | Referencia de capacidad de anticipación |
+| F1-score | **0.7522** | Sin umbral automático configurado | Referencia de equilibrio precision-recall |
+| ROC-AUC | **0.9655** | Alerta P2 si **<0.75**, con etiquetas maduras | Regla implementada; **no** se provocó degradación supervisada |
+| Average Precision | **0.8144** | Sin umbral automático configurado | Referencia de calidad offline |
+
+Los resultados del piloto V2 proceden de **4,896 ventanas y 12 máquinas sintéticas excluidas del entrenamiento**. No deben confundirse con el baseline operativo HTTP, ni compararse directamente con Fase II porque se utilizó otro generador. El PSI y la latencia **sí tuvieron incidentes provocados**; la calidad supervisada del modelo **no** se degradó experimentalmente en esta actividad.
+
+#### ¿Cómo transforma el sistema el baseline en alertas y decisiones?
+
+```mermaid
+flowchart LR
+    A[Baseline normal medido] --> B[Monitoreo de solicitudes y sensores]
+    B --> C{¿SLI o PSI supera el umbral?}
+    C -->|No| D[Continuar y registrar]
+    C -->|Sí| E[Alerta P1/P2 y deduplicación]
+    E --> F[Runbook del incidente]
+    F --> G[Nueva medición y comparación]
+    G --> H{¿Recuperó el nivel aceptable?}
+    H -->|Sí| I[RESOLVED]
+    H -->|No| J[ESCALATE]
+```
+
+En la [Figura 1 de latencia](actividad8/evidence/screenshots/INC-01_latencia_antes_durante_despues.png) y la [Figura 2 de drift](actividad8/evidence/screenshots/INC-02_drift_antes_durante_despues.png) se observan precisamente las tres fases medidas. [MLflow](actividad8/evidence/screenshots/MLflow_experimento_runs.png) registra un run `baseline`, uno `degraded` y uno `recovered` para cada incidente. **Una recuperación en una ventana nueva no elimina retrospectivamente la violación registrada durante el incidente.**
+
 ### Logs estructurados de una solicitud auténtica del laboratorio
 
 En la ejecución reproducible [#43650203109](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/43650203109) se registraron eventos correlacionados por el mismo identificador:
@@ -217,6 +267,8 @@ La captura se realiza mediante el [script reproducible](actividad8/mlflow_captur
 ## 6. SLO, error budget y alertas inteligentes
 
 ### SLI, SLO y presupuestos de error
+
+La [Tabla 1 de baseline](#tabla-1-baseline-de-métricas-operativas-umbrales-y-comparación-con-incidentes) presenta los valores medidos antes, durante y después, frente a los cuales se evaluaron los incidentes. Los SLO son **objetivos configurados**, no cifras medidas de comportamiento normal. 
 
 Se definen objetivos de demostración de 99% de disponibilidad y 99% de oportunidad (respuesta satisfactoria en ≤500 ms). Para una ventana de 12 solicitudes, el presupuesto de errores es:
 
