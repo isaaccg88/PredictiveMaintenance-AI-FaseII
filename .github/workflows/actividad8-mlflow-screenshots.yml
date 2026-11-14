@@ -47,6 +47,7 @@ jobs:
       - name: Abrir UI MLflow real y tomar capturas con Chromium
         env:
           MLFLOW_UI_URL: 'http://127.0.0.1:5000'
+          STREAMLIT_UI_URL: 'http://127.0.0.1:8510'
         run: |
           nohup mlflow ui --backend-store-uri ./actividad8/mlruns --host 127.0.0.1 --port 5000 > actividad8/evidence/mlflow_ui_server.log 2>&1 &
           ready=0
@@ -55,16 +56,29 @@ jobs:
             sleep 2
           done
           test "$ready" -eq 1 || (cat actividad8/evidence/mlflow_ui_server.log && exit 1)
+          # Dashboard real: reutiliza el mismo servidor API e incidents.json.
+          nohup streamlit run actividad8/dashboard.py --server.headless=true --server.port=8510 > actividad8/evidence/streamlit_ui_server.log 2>&1 &
+          streamlit_ready=0
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8510/_stcore/health >/dev/null; then streamlit_ready=1; break; fi
+            sleep 2
+          done
+          test "$streamlit_ready" -eq 1 || (cat actividad8/evidence/streamlit_ui_server.log && exit 1)
           python -m actividad8.mlflow_capture
           test -s actividad8/evidence/screenshots/MLflow_experimento_runs.png
           test -s actividad8/evidence/screenshots/MLflow_modelo_v2_metricas.png
           test -s actividad8/evidence/screenshots/MLflow_incidente_latencia.png
           test -s actividad8/evidence/screenshots/MLflow_incidente_drift.png
+          test -s actividad8/evidence/screenshots/Dashboard_resumen.png
+          test -s actividad8/evidence/screenshots/Dashboard_monitoreo_http.png
+          test -s actividad8/evidence/screenshots/Dashboard_alertas_slo.png
+          test -s actividad8/evidence/screenshots/Dashboard_incidentes_runbooks.png
+          test -s actividad8/evidence/screenshots/Dashboard_trazabilidad.png
       - name: Publicar capturas auténticas permanentes
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add actividad8/evidence/screenshots/MLflow_*.png
+          git add actividad8/evidence/screenshots/MLflow_*.png actividad8/evidence/screenshots/Dashboard_*.png
           if git diff --cached --quiet; then
             echo 'No hay imágenes nuevas para incorporar'
             exit 0
@@ -80,7 +94,9 @@ jobs:
           name: actividad8-mlflow-capturas-y-registros
           path: |
             actividad8/evidence/screenshots/MLflow_*.png
+            actividad8/evidence/screenshots/Dashboard_*.png
             actividad8/evidence/mlflow_screenshots_manifest.json
             actividad8/evidence/mlflow_ui_server.log
+            actividad8/evidence/streamlit_ui_server.log
           if-no-files-found: warn
           retention-days: 30
