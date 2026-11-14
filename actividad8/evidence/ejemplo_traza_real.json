@@ -1,0 +1,32 @@
+{
+  "source": "Extracto literal de runtime/events.jsonl del artefacto de la ejecución #43650203109",
+  "source_run_url": "https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/43650203109",
+  "synthetic": true,
+  "trace_id": "856a1598-2420-40a1-8b9a-070c179cbc8a",
+  "events": [
+    {
+      "at_utc": "2026-11-14T22:51:51.228419+00:00",
+      "level": "INFO",
+      "event": "model.infer",
+      "trace_id": "856a1598-2420-40a1-8b9a-070c179cbc8a",
+      "duration_ms": 26.576
+    },
+    {
+      "at_utc": "2026-11-14T22:51:51.229718+00:00",
+      "level": "INFO",
+      "event": "sqlite.commit",
+      "trace_id": "856a1598-2420-40a1-8b9a-070c179cbc8a",
+      "record_id": 1
+    },
+    {
+      "at_utc": "2026-11-14T22:51:51.230995+00:00",
+      "level": "INFO",
+      "event": "http.request",
+      "trace_id": "856a1598-2420-40a1-8b9a-070c179cbc8a",
+      "route": "/predict",
+      "status": 200,
+      "duration_ms": 28.846,
+      "lab_fault": "none"
+    }
+  ]
+}
