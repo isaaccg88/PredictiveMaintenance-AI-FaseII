@@ -34,12 +34,39 @@ def main():
     if requests.get(URL+'/health',timeout=10).json()['status']!='ok':
         raise RuntimeError('API unavailable')
     alerts=AlertState(); start=datetime.now(timezone.utc).isoformat()
-    healthy_before=evaluate_http(traffic(12))
+    # CPU del runner y arranque en frio pueden producir latencia transitoria.
+    # No ocultamos las muestras: registramos todos los intentos y solo iniciamos
+    # el incidente tras confirmar una ventana base saludable (maximo 4 intentos).
+    warmup=traffic(3)
+    baseline_attempts=[]
+    for attempt in range(4):
+        sample=evaluate_http(traffic(12))
+        baseline_attempts.append(sample)
+        if (sample['status']=='MEASURED' and
+            not sample['latency_breached'] and
+            not sample['availability_breached']):
+            break
+        time.sleep(0.5)
+    healthy_before=baseline_attempts[-1]
+    if healthy_before['latency_breached'] or healthy_before['availability_breached']:
+        raise RuntimeError('Baseline HTTP unstable after 4 measured windows: '+
+                           json.dumps(baseline_attempts,ensure_ascii=False))
     incident=evaluate_http(traffic(12,'latency'))
     first=alerts.update('latency',incident['latency_breached'],incident)
     second=alerts.update('latency',incident['latency_breached'],incident)
-    recovery_1=evaluate_http(traffic(12))
-    recovery_2=evaluate_http(traffic(12))
+    # Buscar dos ventanas sanas CONSECUTIVAS con un limite, sin falsificar la
+    # recuperacion ni ocultar ventanas inestables intermedias.
+    recovery_windows=[]
+    for attempt in range(6):
+        latest=evaluate_http(traffic(12))
+        recovery_windows.append(latest)
+        if (len(recovery_windows)>=2 and
+            all(w['status']=='MEASURED' and
+                not w['latency_breached'] and not w['availability_breached']
+                for w in recovery_windows[-2:])):
+            break
+        time.sleep(0.3)
+    recovery_1,recovery_2=recovery_windows[-2:]
     final=alerts.update('latency',recovery_1['latency_breached'] or recovery_2['latency_breached'],recovery_2)
     rb_latency=documented_action('RB-LATENCY',incident,recovery_2,{
       'first_window_healthy':not recovery_1['latency_breached'],
@@ -82,7 +109,10 @@ def main():
       'service':'real_local_http_FastAPI','slo':SLOS,'rules':ALERT_RULES,
       'incidents':[
        {'incident_id':'INC-01','name':'latency_injection','baseline':healthy_before,
-         'during':incident,'after':recovery_2,'runbook':rb_latency},
+         'baseline_attempts':baseline_attempts,
+         'warmup_request_count':len(warmup),
+         'during':incident,'after':recovery_2,
+         'recovery_windows':recovery_windows,'runbook':rb_latency},
        {'incident_id':'INC-02','name':'synthetic_data_drift',
          'baseline_psi':drift_before,'during_psi':drift_during,
          'after_psi':drift_after,'quarantine':quarantine,'runbook':rb_drift}],
