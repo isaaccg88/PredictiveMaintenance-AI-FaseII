@@ -23,10 +23,12 @@ def main():
     run_id = training["run_id"]
     degraded = next(x["run_id"] for x in records["runs"]
                     if x["name"] == "INC-01_degraded")
+    drift_degraded = next(x["run_id"] for x in records["runs"]
+                          if x["name"] == "INC-02_degraded")
     saved = []
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
-        page = browser.new_page(viewport={"width": 1600, "height": 1000},
+        page = browser.new_page(viewport={"width": 1600, "height": 1450},
                                 device_scale_factor=1)
         page.goto(host, wait_until="domcontentloaded", timeout=90000)
         page.wait_for_timeout(3800)
@@ -41,12 +43,19 @@ def main():
         body = page.locator("body").inner_text(timeout=20000)
         if "PredictiveMaintenanceAI_Actividad8_V2" not in body:
             raise AssertionError("El listado MLflow no muestra nuestro experimento")
+        # MLflow 3.6 muestra a veces un globo de confirmación de tipo.
+        # Se descarta antes de tomar evidencia legible del listado de runs.
+        confirm = page.get_by_role("button", name="Confirm")
+        if confirm.count() and confirm.first.is_visible():
+            confirm.first.click()
+            page.wait_for_timeout(800)
         file = dest / "MLflow_experimento_runs.png"
         page.screenshot(path=str(file), full_page=True)
         saved.append(str(file))
         for label, target in [
             ("MLflow_modelo_v2_metricas.png", run_id),
             ("MLflow_incidente_latencia.png", degraded),
+            ("MLflow_incidente_drift.png", drift_degraded),
         ]:
             page.goto(host + "/#/experiments/" + str(experiment_id) +
                       "/runs/" + str(target),
@@ -63,6 +72,7 @@ def main():
     manifest = {"type": "real_mlflow_ui_screenshots",
                 "mlflow_run_id_training": run_id,
                 "mlflow_run_id_incident": degraded,
+                "mlflow_run_id_drift": drift_degraded,
                 "experiment_id": experiment_id,
                 "files": [Path(x).name for x in saved],
                 "source": "Chromium headless against MLflow 3.6 local runner",
