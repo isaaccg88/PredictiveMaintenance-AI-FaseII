@@ -67,6 +67,10 @@ Las capturas provienen de Chromium sobre la interfaz real MLflow 3.6.0, no de im
 
 **Figura C.** Condición de latencia incumplida, parámetros y tags del incidente medido.
 
+![MLflow: corrida INC-02 degradada y PSI > 0.20](../evidence/screenshots/MLflow_incidente_drift.png)
+
+**Figura D.** PSI de temperatura 10.3608 en un lote sintético de 450 lecturas; run etiquetado como degradado y asociado a RB-DRIFT. Las mediciones de recuperación están en [incidents.json](../evidence/incidents.json).
+
 El [workflow de captura](../../.github/workflows/actividad8-mlflow-screenshots.yml) inicia el servidor MLflow, abre sus páginas con Chromium y publica únicamente capturas verificadas. El artefacto de GitHub Actions conserva el tracking store completo para su reproducción. Las capturas persistentes no caducan al finalizar la retención del artefacto de CI.
 
 ### Cómo comprobarlo sin instalar MLflow localmente
