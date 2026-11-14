@@ -88,6 +88,8 @@ Revisión: [runbooks explicados](actividad8/docs/RUNBOOKS.md), [motor de simulac
 
 La lógica automatiza la medición, clasificación, supresión de duplicados, respuesta limitada a fallas del laboratorio, verificación con nuevas observaciones y reporte final. Si la recuperación no cumple los criterios, el verificador marca `ESCALATE` y la corrida falla. No se realizan despliegues de modelos nuevos sin aprobación humana.
 
+**Diseño y responsabilidades:** [automatización implementada y protocolos documentados de rollback/reentrenamiento](actividad8/docs/AUTOMATIZACION_Y_GOBERNANZA.md). Se especifica qué responde realmente el laboratorio y qué requiere aprobación de una persona; no se declara rollback de un despliegue real.
+
 - [Corridas de GitHub Actions](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad8.yml) — ejecutar y comprobar el estado **PASS**; no afirmar éxito de CI hasta observar una corrida verde.
 - [Workflow fuente](.github/workflows/actividad8.yml) — reentrena, registra MLflow, ejecuta pruebas, levanta FastAPI y Streamlit, inyecta incidentes, verifica resultados y publica un artefacto de evidencia.
 - [Resultados reproducibles](actividad8/results/evaluation_v2.json) y [registro de incidentes](actividad8/evidence/incidents.json) — valores de una corrida local; las cifras de CI se regeneran y pueden diferir mínimamente por entorno.
