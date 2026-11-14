@@ -200,9 +200,13 @@ Las siguientes imágenes se capturaron con **Chromium sobre MLflow 3.6.0 en GitH
 
 ![Figura MLflow 3: incidente de latencia degradada](actividad8/evidence/screenshots/MLflow_incidente_latencia.png)
 
-**Figura 5 — Run INC-01_degraded:** expone latencia p95 medida, SLO, presupuesto y etiquetas de incidente, severidad operativa, runbook y naturaleza sintética. Es una evidencia adicional al gráfico antes/durante/después mostrado en la sección 8.
+**Figura 5 — Run INC-01_degraded:** expone latencia p95 medida, SLO, presupuesto y etiquetas de incidente, runbook y naturaleza sintética. Es una evidencia adicional al gráfico antes/durante/después mostrado en la sección 8.
 
-Para inspeccionar las imágenes a tamaño completo: [runs](actividad8/evidence/screenshots/MLflow_experimento_runs.png) · [modelo V2](actividad8/evidence/screenshots/MLflow_modelo_v2_metricas.png) · [latencia](actividad8/evidence/screenshots/MLflow_incidente_latencia.png).
+![Figura MLflow 4: incidente de data drift con PSI de temperatura](actividad8/evidence/screenshots/MLflow_incidente_drift.png)
+
+**Figura 6 — Run INC-02_degraded:** MLflow confirma PSI = 10.3608 con 450 observaciones; la etiqueta de la fase marca VIOLATION y registra RB-DRIFT. El resultado de recuperación se demuestra por separado mediante nuevas mediciones del laboratorio.
+
+Para inspeccionar las imágenes a tamaño completo: [runs](actividad8/evidence/screenshots/MLflow_experimento_runs.png) · [modelo V2](actividad8/evidence/screenshots/MLflow_modelo_v2_metricas.png) · [latencia](actividad8/evidence/screenshots/MLflow_incidente_latencia.png) · [drift](actividad8/evidence/screenshots/MLflow_incidente_drift.png).
 
 La captura se realiza mediante el [script reproducible](actividad8/mlflow_capture.py) y el [workflow independiente](.github/workflows/actividad8-mlflow-screenshots.yml). Ver también [evidencia técnica MLflow](actividad8/docs/MLFLOW_EVIDENCIA.md).
 
@@ -289,6 +293,24 @@ El dashboard de Streamlit se ejecuta en **http://localhost:8510** y tiene cinco 
 | Evidencia y trazabilidad | Estado de runbooks, fechas y enlaces a CI | Permite localizar código y ejecuciones |
 
 **Prueba local registrada:** en la computadora de demostración se ejecutaron dos predicciones a 72 horas mediante Streamlit: PM-049 con riesgo de 45.7% (MEDIO), PM-050 con 0.0% (BAJO). Se comprobaron cinco registros en SQLite y una latencia p95 local aproximada de 139.8 ms. Son observaciones del piloto local, no las mismas cifras del laboratorio de GitHub Actions.
+
+### Capturas verificadas de las vistas de Streamlit
+
+Todas las imágenes siguientes fueron obtenidas **navegando realmente con Chromium sobre Streamlit y FastAPI** durante una ejecución reproducible de GitHub Actions. Son diferentes de las capturas locales del equipo Windows y no corresponden a una interfaz recreada.
+
+![Dashboard Resumen: calidad ML offline, estado API y piloto de 12 máquinas](actividad8/evidence/screenshots/Dashboard_resumen.png)
+
+**Figura 7 — Resumen:** expone cuatro métricas offline, conexión de API y selector de máquinas. El p95 visible de la corrida CI incluye peticiones con retrasos inyectados por el laboratorio; **no representa la latencia sana ni sustituye el resultado local de 139.8 ms**.
+
+![Dashboard Monitoreo HTTP: peticiones, duración, disponibilidad y oportunidad](actividad8/evidence/screenshots/Dashboard_monitoreo_http.png)
+
+**Figura 8 — Monitoreo HTTP:** refleja la ventana acumulada del laboratorio, con 51 peticiones, 100% de disponibilidad y 76.5% de oportunidad. **Es esperado que incumpla el SLO de oportunidad**, ya que en esa corrida se provocó una degradación controlada; muestra el vínculo entre la anomalía y el consumo del presupuesto de error.
+
+![Dashboard Alertas y SLO: seis reglas y eventos deduplicados](actividad8/evidence/screenshots/Dashboard_alertas_slo.png)
+
+**Figura 9 — Alertas y SLO:** seis condiciones documentadas con severidad y runbook; historial de dos alertas emitidas, una repetición suprimida y dos resoluciones. Los estados de la tabla son históricos del laboratorio, no avisos activos 24/7.
+
+**Otras vistas verificadas:** [Incidentes y runbooks](actividad8/evidence/screenshots/Dashboard_incidentes_runbooks.png) · [Evidencia y trazabilidad](actividad8/evidence/screenshots/Dashboard_trazabilidad.png). Las imágenes son permanentes en el repositorio y se producen mediante el [workflow de capturas](.github/workflows/actividad8-mlflow-screenshots.yml).
 
 ---
 
