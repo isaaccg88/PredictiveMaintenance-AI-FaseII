@@ -44,6 +44,8 @@ jobs:
           if [ "$ready" -ne 1 ]; then cat actividad8/evidence/api_server.log; exit 1; fi
           python -m actividad8.laboratory
           python -m actividad8.verify
+          python -m actividad8.mlflow_incidents
+          python -m actividad8.mlflow_incident_audit
       - name: Comprobar dashboard Streamlit ejecutándose
         env:
           PYTHONPATH: ${{ github.workspace }}
