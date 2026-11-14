@@ -234,6 +234,31 @@ Por tanto, **una sola solicitud no oportuna supera el presupuesto completo** en 
 
 **Prioridad:** P1 indica afectación crítica de disponibilidad o errores del servicio. P2 corresponde a degradación de tiempos, capacidad, distribución o calidad. Los seis predicados se verifican con pruebas, pero **solo latencia y drift se provocan como incidentes completos** en la actividad.
 
+### Fragmento de código de la instrumentación y cálculo de SLI
+
+En [service.py](actividad8/service.py), el middleware registra duración, identificador de traza y status HTTP de cada solicitud. La lógica se ejecuta alrededor del endpoint, no calcula un número artificial:
+
+```python
+started = time.perf_counter()
+trace_id = str(uuid.uuid4())
+request.state.trace_id = trace_id
+response = await call_next(request)
+duration = round((time.perf_counter() - started) * 1000, 3)
+response.headers["X-Trace-Id"] = trace_id
+```
+
+En [rules.py](actividad8/rules.py) la definición del SLO depende de solicitudes oportunas, no únicamente de la media de latencia:
+
+```python
+timely = sum(200 <= s["status"] < 300 and
+             s["duration_ms"] <= SLOS["max_latency_ms"] for s in samples)
+latency_bad = len(samples) - timely
+permitted = len(samples) * (1 - SLOS["timely"])
+latency_breached = latency_bad > permitted
+```
+
+**Interpretación:** si hay 12 solicitudes y una supera los 500 ms, el indicador de oportunidad cae a 91.67%, incumpliendo el objetivo del 99%; la alerta no se justifica por una cifra aislada de p95, sino por el SLI medido en una ventana definida.
+
 ### Control de ruido de alertas
 
 El motor [AlertState](actividad8/rules.py) muestra la transición:
@@ -457,6 +482,13 @@ La plataforma describe documentos PDF/Word, evidencia de implementación, simula
 **Aclaración de formato:** la instrucción escrita original menciona un ZIP con PDF/Word. Para entregar solo el enlace GitHub se toma como referencia la aclaración verbal del profesor. El repositorio sigue siendo descargable con **Code → Download ZIP** si se requiriera un formato adicional. No se atribuyen al sistema funciones no implementadas.
 
 ---
+
+### Referencias metodológicas
+
+- [Google, *SRE Workbook — Implementing SLOs*](https://sre.google/workbook/implementing-slos/). Definición de SLI/SLO, presupuestos de error y decisiones operativas.
+- [MLflow, *Tracking Quickstart*](https://mlflow.org/docs/latest/ml/getting-started/quickstart/). Experimentos, parámetros, métricas, artefactos y revisión de runs.
+- [FastAPI, *Middleware*](https://fastapi.tiangolo.com/tutorial/middleware/). Instrumentación transversal de solicitudes y respuestas.
+- [GitHub, *actions/upload-artifact*](https://github.com/actions/upload-artifact). Persistencia temporal de evidencias de workflows.
 
 **Referencias del proyecto:** [Rúbrica y matriz de cobertura](actividad8/docs/AUDITORIA_RUBRICA.md) · [Runbooks completos](actividad8/docs/RUNBOOKS.md) · [Evidencias visuales](actividad8/docs/EVIDENCIAS_VISUALES.md) · [MLflow](actividad8/docs/MLFLOW_EVIDENCIA.md) · [Fase II original (main)](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/tree/main).
 
