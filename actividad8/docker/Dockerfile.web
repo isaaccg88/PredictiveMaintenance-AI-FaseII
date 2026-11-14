@@ -3,6 +3,9 @@ WORKDIR /workspace
 COPY requirements-runtime-web.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 COPY . /workspace/actividad8
+# Streamlit ejecuta el script desde su subcarpeta; preservar la raiz del paquete en sys.path.
+ENV PYTHONPATH=/workspace
 ENV ACT8_API=http://api:8008
+RUN python -c "import actividad8.simulator; import actividad8.dashboard"
 EXPOSE 8510
 CMD ["streamlit","run","actividad8/dashboard.py","--server.headless=true","--server.address=0.0.0.0","--server.port=8510"]
