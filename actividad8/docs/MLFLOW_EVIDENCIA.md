@@ -33,7 +33,7 @@ Los **15 valores** de esta tabla se leyeron de los ficheros `mlruns/<experiment>
 | `holdout_machines` | `12` |
 | `threshold` | `0.5` |
 
-En el directorio del run se incluyen los artefactos `evaluation_v2.json` y `metadata_v2.json`. También se publica `results/mlflow_run.json` con el identificador de la corrida en el artefacto de Actions.
+En el directorio del run se incluyen los artefactos `evaluation_v2.json`, `metadata_v2.json` y `model_v2.joblib`. También se publica `results/mlflow_run.json` con el identificador de la corrida en el artefacto de Actions.
 
 ### Validación automática añadida
 
@@ -41,9 +41,33 @@ El programa [`mlflow_audit.py`](../mlflow_audit.py) consulta realmente el tracki
 1. Que exista la corrida terminada y pertenezca al experimento esperado.
 2. Que coincidan los cuatro parámetros registrados.
 3. Que las 15 métricas registradas sean iguales a las del reporte de esa misma ejecución.
-4. Que existan los dos artefactos MLflow de evaluación.
+4. Que existan los tres artefactos MLflow de evaluación, metadata y modelo.
 
-La verificación produce `evidence/mlflow_validation.json` y `evidence/mlflow_validation.md`, incluidos en el artefacto de CI. El workflow falla ante cualquier discrepancia. **La ejecución que incorpore esta nueva verificación debe revisarse por separado:** este documento acredita lo ya inspeccionado en la ejecución #43649432772, no presupone el resultado de futuras corridas.
+La verificación produce `evidence/mlflow_validation.json` y `evidence/mlflow_validation.md`, incluidos en el artefacto de CI. El workflow falla ante cualquier discrepancia. El validador de seguimiento fue ejecutado correctamente en GitHub Actions. Las corridas posteriores deben seguir verificándose por su estado real, sin presuponer éxito.
+
+## Escenarios de incidentes registrados en MLflow
+
+Se añadieron seis runs reales de seguimiento, tomando sus métricas de las ventanas HTTP y PSI medidas por el laboratorio. Los nombres son **INC-01_baseline**, **INC-01_degraded**, **INC-01_recovered**, **INC-02_baseline**, **INC-02_degraded** e **INC-02_recovered**. Se comprueba automáticamente su coherencia contra `incidents.json` mediante [el auditor de incidentes](../mlflow_incident_audit.py).
+
+**Siete runs en un mismo experimento:** uno de entrenamiento y seis etapas de incidentes, sin presentar fases sintéticas como reentrenamientos o reparaciones industriales.
+
+### Capturas auténticas y permanentes
+
+Las capturas provienen de Chromium sobre la interfaz real MLflow 3.6.0, no de imágenes ficticias ni de otro proyecto:
+
+![MLflow: listado de siete ejecuciones](../evidence/screenshots/MLflow_experimento_runs.png)
+
+**Figura A.** Experimento con el entrenamiento y los seis runs de incidentes.
+
+![MLflow: detalle del modelo V2](../evidence/screenshots/MLflow_modelo_v2_metricas.png)
+
+**Figura B.** Métricas registradas para validación, prueba temporal y piloto.
+
+![MLflow: ejecución degradada por latencia](../evidence/screenshots/MLflow_incidente_latencia.png)
+
+**Figura C.** Condición de latencia incumplida, parámetros y tags del incidente medido.
+
+El [workflow de captura](../../.github/workflows/actividad8-mlflow-screenshots.yml) inicia el servidor MLflow, abre sus páginas con Chromium y publica únicamente capturas verificadas. El artefacto de GitHub Actions conserva el tracking store completo para su reproducción. Las capturas persistentes no caducan al finalizar la retención del artefacto de CI.
 
 ### Cómo comprobarlo sin instalar MLflow localmente
 
@@ -54,4 +78,4 @@ Abrir la ejecución de GitHub Actions, seleccionar el artefacto `actividad8-v2-e
 - Los datos, sensores, fallas y ventanas de pronóstico son **sintéticos**.
 - La V2 se genera mediante un mecanismo diferente al de Fase II; no atribuir su mejora aparente exclusivamente al algoritmo.
 - La corrida MLflow es efímera y sus registros brutos dependen de la retención del artefacto. Esta exportación textual conserva los valores verificados para la documentación académica.
-- Las capturas de Streamlit documentan incidentes; **no se presentan como capturas de la interfaz MLflow**.
+- Las capturas de Streamlit documentan recuperación del servicio; las capturas de MLflow anteriores muestran auténticos runs del tracking store del laboratorio. No se confunden ambos instrumentos.
