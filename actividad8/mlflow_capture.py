@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 from .simulator import HERE
@@ -68,8 +69,33 @@ def main():
             file = dest / label
             page.screenshot(path=str(file), full_page=True)
             saved.append(str(file))
+        # Capturar también las cinco vistas del dashboard real de Streamlit,
+        # sin recrearlas gráficamente ni utilizar fotografías de otras personas.
+        dashboard_host = os.environ.get("STREAMLIT_UI_URL", "").rstrip("/")
+        if dashboard_host:
+            board = browser.new_page(viewport={"width": 1600, "height": 1250},
+                                     device_scale_factor=1)
+            board.goto(dashboard_host, wait_until="domcontentloaded", timeout=90000)
+            board.get_by_role("tab", name=re.compile("Resumen")).wait_for(timeout=90000)
+            selections = [
+                ("Resumen", "Desempeño del modelo", "Dashboard_resumen.png"),
+                ("Monitoreo HTTP", "Observabilidad HTTP", "Dashboard_monitoreo_http.png"),
+                ("Alertas y SLO", "Seis reglas", "Dashboard_alertas_slo.png"),
+                ("Incidentes y runbooks", "Incidentes controlados", "Dashboard_incidentes_runbooks.png"),
+                ("Evidencia y trazabilidad", "Trazabilidad de la entrega", "Dashboard_trazabilidad.png"),
+            ]
+            for label, expected, filename in selections:
+                board.get_by_role("tab", name=re.compile(re.escape(label))).click()
+                board.wait_for_timeout(1900)
+                body = board.locator("body").inner_text()
+                if expected not in body or "ModuleNotFoundError" in body:
+                    raise AssertionError("Vista Streamlit no verificable: " + label)
+                file = dest / filename
+                board.screenshot(path=str(file), full_page=True)
+                saved.append(str(file))
+            board.close()
         browser.close()
-    manifest = {"type": "real_mlflow_ui_screenshots",
+    manifest = {"type": "real_mlflow_and_streamlit_ui_screenshots",
                 "mlflow_run_id_training": run_id,
                 "mlflow_run_id_incident": degraded,
                 "mlflow_run_id_drift": drift_degraded,
