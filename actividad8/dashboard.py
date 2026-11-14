@@ -9,6 +9,7 @@ import json
 import os
 
 import pandas as pd
+import altair as alt
 import requests
 import streamlit as st
 
@@ -48,6 +49,25 @@ def section_metric(label, value, caption=None):
     st.metric(label, value)
     if caption:
         st.caption(caption)
+
+
+def plot_incident_stages(stages, values, title, threshold):
+    """Orden temporal explícito y umbral para no confundir antes/durante/después."""
+    chart_data = pd.DataFrame({"Momento": stages, "Valor": values})
+    bars = alt.Chart(chart_data).mark_bar(size=95).encode(
+        x=alt.X("Momento:N", sort=stages, title=None,
+                axis=alt.Axis(labelAngle=0)),
+        y=alt.Y("Valor:Q", title=title, scale=alt.Scale(zero=True)),
+        tooltip=[
+            alt.Tooltip("Momento:N"),
+            alt.Tooltip("Valor:Q", format=".3f"),
+        ],
+    )
+    target = alt.Chart(pd.DataFrame({"Objetivo": [threshold]})).mark_rule(
+        strokeDash=[6, 4], color="#cc4a3f", strokeWidth=2
+    ).encode(y="Objetivo:Q")
+    st.altair_chart((bars + target).properties(height=290), use_container_width=True)
+    st.caption(f"Línea roja discontinua: límite de alerta ({threshold:g}).")
 
 
 data = read_json(HERE / "results" / "evaluation_v2.json") or {}
@@ -241,7 +261,7 @@ with incidents_tab:
     st.subheader("Incidentes controlados · evidencia histórica reproducible")
     st.caption(
         "Las siguientes mediciones fueron generadas por el laboratorio sintético, "
-        "NO por las tres solicitudes del navegador de esta sesión."
+        "NO por las solicitudes de la sesión local del navegador."
     )
     if not evidence:
         st.info("No hay incidents.json. Ejecuta el laboratorio reproducible para generar evidencia.")
@@ -260,8 +280,10 @@ with incidents_tab:
                 c1, c2, c3 = st.columns(3)
                 for slot, stage, value in zip([c1, c2, c3], stages, values):
                     slot.metric("p95 " + stage.lower(), number(value, 1, " ms"))
-                st.bar_chart(pd.DataFrame({"Momento": stages, "p95 (ms)": values})
-                             .set_index("Momento"), y_label="p95 HTTP (ms)")
+                plot_incident_stages(
+                    stages, values, "Latencia p95 (ms)",
+                    evidence.get("slo", {}).get("max_latency_ms", 500),
+                )
                 st.caption(
                     "Umbral de referencia: 500 ms. Se retiró la demora de prueba y "
                     "se midieron nuevas solicitudes HTTP en dos ventanas sanas."
@@ -277,8 +299,10 @@ with incidents_tab:
                 c1, c2, c3 = st.columns(3)
                 for slot, stage, value in zip([c1, c2, c3], stages, values):
                     slot.metric("PSI " + stage.lower(), number(value, 3))
-                st.bar_chart(pd.DataFrame({"Momento": stages, "PSI": values})
-                             .set_index("Momento"), y_label="PSI")
+                plot_incident_stages(
+                    stages, values, "PSI",
+                    evidence.get("slo", {}).get("drift_psi", 0.20),
+                )
                 st.caption(
                     "Umbral PSI >0.20. Se aisló el lote sintético alterado y se "
                     "repitió la evaluación con una muestra restaurada."
