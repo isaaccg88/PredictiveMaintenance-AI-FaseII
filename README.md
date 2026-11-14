@@ -91,7 +91,11 @@ La lógica automatiza la medición, clasificación, supresión de duplicados, re
 - [Corridas de GitHub Actions](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad8.yml) — ejecutar y comprobar el estado **PASS**; no afirmar éxito de CI hasta observar una corrida verde.
 - [Workflow fuente](.github/workflows/actividad8.yml) — reentrena, registra MLflow, ejecuta pruebas, levanta FastAPI y Streamlit, inyecta incidentes, verifica resultados y publica un artefacto de evidencia.
 - [Resultados reproducibles](actividad8/results/evaluation_v2.json) y [registro de incidentes](actividad8/evidence/incidents.json) — valores de una corrida local; las cifras de CI se regeneran y pueden diferir mínimamente por entorno.
-- [MLflow](actividad8/train_v2.py) — corridas con parámetros, métricas y artefactos; los datos de tracking generados se guardan como artefacto de Actions y no como una base permanente compartida.
+- [MLflow — evidencia real exportada y cotejada](actividad8/docs/MLFLOW_EVIDENCIA.md) — parámetros, 15 métricas, identificador de run y vínculo a la ejecución fuente; [validador automático](actividad8/mlflow_audit.py) comprueba el tracking store en GitHub Actions. Los datos brutos quedan como artefacto temporal de CI, no como base permanente compartida.
+
+### Matriz de auditoría y cobertura de rúbrica
+
+Para revisar de forma rápida cada criterio, consulta la [matriz de criterios, implementación y evidencia](actividad8/docs/AUDITORIA_RUBRICA.md). Explica cuáles resultados son pruebas del laboratorio y cuáles capacidades son solo procedimientos documentados o futuras mejoras.
 
 ## 6. Ejecutar localmente (Windows)
 
