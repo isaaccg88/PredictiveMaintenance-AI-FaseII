@@ -43,7 +43,16 @@ jobs:
           python -m actividad8.laboratory
           python -m actividad8.verify
       - name: Comprobar dashboard Streamlit ejecutándose
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
+          # El healthcheck no basta: comprobar que el script se renderiza sin excepciones.
+          python - <<'PY'
+          from streamlit.testing.v1 import AppTest
+          app = AppTest.from_file("actividad8/dashboard.py", default_timeout=30).run()
+          assert len(app.exception) == 0, [str(e.message) for e in app.exception]
+          print("DASHBOARD RENDER: PASS")
+          PY
           nohup streamlit run actividad8/dashboard.py --server.headless=true --server.port=8510 > actividad8/evidence/dashboard_server.log 2>&1 &
           for i in $(seq 1 40); do
             if curl -fsS http://127.0.0.1:8510/_stcore/health > actividad8/evidence/dashboard_health.txt; then exit 0; fi
