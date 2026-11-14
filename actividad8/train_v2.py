@@ -104,12 +104,20 @@ def main(track_mlflow=False):
         mlflow.set_tracking_uri((HERE/'mlruns').resolve().as_uri())
         mlflow.set_experiment('PredictiveMaintenanceAI_Actividad8_V2')
         with mlflow.start_run(run_name='synthetic_v2_72h'):
+            mlflow.set_tags({
+                'dataset':'100_percent_synthetic_v2',
+                'horizon_hours':'72',
+                'holdout':'PM-049..PM-060',
+                'execution_scope':'academic_CI_not_real_production',
+                'mlflow.note.content':'Random Forest V2: 72h ahead; 12 synthetic machines excluded from tuning. 15 metrics across validation, temporal test and pilot. No industrial validation.'
+            })
             mlflow.log_params({'seed':SEED,'horizon_hours':72,'holdout_machines':12,'threshold':th})
             for group,vals in result.items():
                 for metric in ['precision','recall','f1','roc_auc','average_precision']:
                     mlflow.log_metric(f'{group}_{metric}',vals[metric])
             mlflow.log_artifact(str(RES/'evaluation_v2.json'))
             mlflow.log_artifact(str(ART/'metadata_v2.json'))
+            mlflow.log_artifact(str(ART/'model_v2.joblib'))
             (RES/'mlflow_run.json').write_text(json.dumps({'run_id':mlflow.active_run().info.run_id,
                 'experiment':'PredictiveMaintenanceAI_Actividad8_V2'},indent=2)+'\n')
     print(json.dumps({'threshold':th,'test_pilot':result['test_pilot'],
