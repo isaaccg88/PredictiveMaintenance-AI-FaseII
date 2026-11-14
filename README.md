@@ -160,7 +160,7 @@ El panel reúne métricas de calidad offline con el estado vivo de la API local.
 
 ### Seguimiento de modelos y experimentos
 
-Se utiliza **MLflow 3.6** como herramienta de seguimiento real. El experimento se llama **PredictiveMaintenanceAI_Actividad8_V2**. El entrenamiento registra 4 parámetros (semilla, horizonte, tamaño del piloto y umbral), **15 métricas** (cinco para cada uno de tres subconjuntos) y dos artefactos de evaluación.
+Se utiliza **MLflow 3.6** como herramienta de seguimiento real. El experimento se llama **PredictiveMaintenanceAI_Actividad8_V2**. El entrenamiento registra 4 parámetros (semilla, horizonte, tamaño del piloto y umbral), **15 métricas** (cinco para cada uno de tres subconjuntos), los archivos de evaluación/metadata y el **modelo Random Forest serializado** como artefacto de MLflow.
 
 Además, para acercar la demostración al ejemplo del profesor, se incorporó [mlflow_incidents.py](actividad8/mlflow_incidents.py), que registra **seis runs independientes de los incidentes**:
 
@@ -183,7 +183,25 @@ Además, para acercar la demostración al ejemplo del profesor, se incorporó [m
 | Prueba temporal | 0.700719 | 0.830292 | 0.970843 |
 | Piloto | 0.723849 | 0.782805 | 0.965536 |
 
-**Evidencia de la interfaz MLflow.** El [workflow de capturas auténticas](.github/workflows/actividad8-mlflow-screenshots.yml) automatiza Chromium contra el servidor MLflow temporal del runner, verifica que aparezca nuestro experimento y solo entonces publica capturas reales. Las imágenes permanentes, una vez generadas y aprobadas, se muestran en esta sección y se conservan bajo **actividad8/evidence/screenshots/**. Ver [registro técnico MLflow](actividad8/docs/MLFLOW_EVIDENCIA.md).
+### Capturas auténticas de la interfaz MLflow
+
+Las siguientes imágenes se capturaron con **Chromium sobre MLflow 3.6.0 en GitHub Actions**, leyendo los runs realmente registrados por el laboratorio. No son recreaciones ni gráficas dibujadas para aparentar una interfaz.
+
+![Figura MLflow 1: listado de un entrenamiento V2 y seis etapas de incidentes](actividad8/evidence/screenshots/MLflow_experimento_runs.png)
+
+**Figura 3 — Listado de experimentos:** se observan siete runs: uno de entrenamiento y seis correspondientes a antes/durante/después de INC-01 e INC-02. Cada etapa tiene su propia identidad de ejecución.
+
+![Figura MLflow 2: entrenamiento V2 y métricas originales](actividad8/evidence/screenshots/MLflow_modelo_v2_metricas.png)
+
+**Figura 4 — Run del modelo V2:** muestra las 15 métricas y los parámetros del experimento; la precisión del piloto (0.723849) coincide con el reporte JSON evaluado automáticamente.
+
+![Figura MLflow 3: incidente de latencia degradada](actividad8/evidence/screenshots/MLflow_incidente_latencia.png)
+
+**Figura 5 — Run INC-01_degraded:** expone latencia p95 medida, SLO, presupuesto y etiquetas de incidente, severidad operativa, runbook y naturaleza sintética. Es una evidencia adicional al gráfico antes/durante/después mostrado en la sección 8.
+
+Para inspeccionar las imágenes a tamaño completo: [runs](actividad8/evidence/screenshots/MLflow_experimento_runs.png) · [modelo V2](actividad8/evidence/screenshots/MLflow_modelo_v2_metricas.png) · [latencia](actividad8/evidence/screenshots/MLflow_incidente_latencia.png).
+
+La captura se realiza mediante el [script reproducible](actividad8/mlflow_capture.py) y el [workflow independiente](.github/workflows/actividad8-mlflow-screenshots.yml). Ver también [evidencia técnica MLflow](actividad8/docs/MLFLOW_EVIDENCIA.md).
 
 **Alcance:** MLflow es un tracking store del laboratorio y no una plataforma de monitoreo permanente. La calidad predictiva de un modelo en producción solo podrá calcularse cuando se conozcan las fallas reales y maduren las etiquetas.
 
@@ -400,7 +418,9 @@ Probar POST /predict con el cuerpo JSON:
 {"machine_id":"PM-049"}
 ```
 
-Para detener sin borrar SQLite: ```powershell
+Para detener sin borrar SQLite:
+
+```powershell
 docker compose -f actividad8/compose.yaml down
 ```
 
