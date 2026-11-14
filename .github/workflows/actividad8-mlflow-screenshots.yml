@@ -6,6 +6,9 @@ on:
       - '.github/workflows/actividad8-mlflow-screenshots.yml'
       - 'actividad8/mlflow_capture.py'
   workflow_dispatch:
+concurrency:
+  group: actividad8-mlflow-evidence
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:
@@ -78,15 +81,23 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add actividad8/evidence/screenshots/MLflow_*.png actividad8/evidence/screenshots/Dashboard_*.png
-          if git diff --cached --quiet; then
-            echo 'No hay imágenes nuevas para incorporar'
-            exit 0
-          fi
-          git commit -m 'docs(actividad8): capturas reales de interfaz MLflow [skip ci]'
-          # Conservar commits adicionales realizados en la rama durante este job.
-          git pull --rebase origin actividad8-v2-observabilidad
-          git push origin HEAD:actividad8-v2-observabilidad
+          # El repo puede haber avanzado durante la captura. Integrar cabeza
+          # remota y reponer SOLO evidencias binarias nuevas, sin reescribir docs.
+          for attempt in 1 2 3; do
+            git fetch origin actividad8-v2-observabilidad
+            git reset --mixed FETCH_HEAD
+            git add actividad8/evidence/screenshots/MLflow_*.png actividad8/evidence/screenshots/Dashboard_*.png
+            if git diff --cached --quiet; then
+              echo 'Las capturas ya coinciden con el repositorio'
+              exit 0
+            fi
+            git commit -m 'docs(actividad8): capturas auténticas MLflow y dashboard [skip ci]'
+            if git push origin HEAD:actividad8-v2-observabilidad; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
       - name: Conservar reporte de pantalla y log de captura
         if: always()
         uses: actions/upload-artifact@v4
