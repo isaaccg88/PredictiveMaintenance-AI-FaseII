@@ -1,6 +1,9 @@
 # 🏭 Predictive Maintenance AI · Actividad 8
 ### Monitorización proactiva, observabilidad, MLOps y gobernanza operativa
 
+[![Validación reproducible de la Actividad 8](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad8.yml/badge.svg?branch=actividad8-v2-observabilidad)](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad8.yml)
+
+
 **Universidad Tecmilenio · Gestión de Proyectos de Inteligencia Artificial · Módulo 3 / Semana 10**  
 **Caso académico:** servicio de mantenimiento predictivo, horizonte de falla a 72 horas.  
 **Herramientas:** Python · scikit-learn · MLflow 3.6 · FastAPI · SQLite · Streamlit · Docker · GitHub Actions.  
