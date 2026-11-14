@@ -59,6 +59,7 @@ jobs:
           test -s actividad8/evidence/screenshots/MLflow_experimento_runs.png
           test -s actividad8/evidence/screenshots/MLflow_modelo_v2_metricas.png
           test -s actividad8/evidence/screenshots/MLflow_incidente_latencia.png
+          test -s actividad8/evidence/screenshots/MLflow_incidente_drift.png
       - name: Publicar capturas auténticas permanentes
         run: |
           git config user.name 'github-actions[bot]'
@@ -69,6 +70,8 @@ jobs:
             exit 0
           fi
           git commit -m 'docs(actividad8): capturas reales de interfaz MLflow [skip ci]'
+          # Conservar commits adicionales realizados en la rama durante este job.
+          git pull --rebase origin actividad8-v2-observabilidad
           git push origin HEAD:actividad8-v2-observabilidad
       - name: Conservar reporte de pantalla y log de captura
         if: always()
