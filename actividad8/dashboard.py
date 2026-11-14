@@ -332,7 +332,8 @@ with audit_tab:
     st.markdown(
         "**Código y explicaciones:** "
         "[Repositorio Actividad 8](https://github.com/isaaccg88/"
-        "PredictiveMaintenance-AI-FaseII/tree/actividad8-v2-observabilidad)  \\n"
+        "PredictiveMaintenance-AI-FaseII/tree/actividad8-v2-observabilidad)"
+        "\n\n"
         "**Ejecuciones verificables:** "
         "[GitHub Actions](https://github.com/isaaccg88/"
         "PredictiveMaintenance-AI-FaseII/actions)"
