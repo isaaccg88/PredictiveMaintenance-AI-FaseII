@@ -66,6 +66,20 @@ Código: [reglas](actividad8/rules.py), [catálogo de runbooks](actividad8/runbo
 | INC-01 Latencia | Peticiones HTTP sanas | Retraso controlado de 650 ms en `/predict`, alerta | Retirar inyección, repetir HTTP y verificar dos ventanas sanas | [Incidentes JSON](actividad8/evidence/incidents.json) |
 | INC-02 Drift | PSI de lote normal | Sensor sintético desplazado +14 °C y puesto en cuarentena | Restaurar lote limpio y comprobar PSI <0.20 | [Resumen](actividad8/evidence/summary.json) |
 
+### Evidencias visuales verificadas
+
+Las capturas de la ejecución local muestran el estado del dashboard corregido, con fases cronológicas y límites de alerta explícitos. Consulta la [documentación de evidencias visuales](actividad8/docs/EVIDENCIAS_VISUALES.md), que incluye procedencia, alcance y huellas de integridad.
+
+**INC-01 — Latencia HTTP:** 35.9 → 689.2 → 37.2 ms (límite: 500 ms). [Abrir captura a tamaño completo](actividad8/evidence/screenshots/INC-01_latencia_antes_durante_despues.png).
+
+![Evidencia visual INC-01: p95 antes, durante y después de la inyección controlada de latencia](actividad8/evidence/screenshots/INC-01_latencia_antes_durante_despues.png)
+
+**INC-02 — Data drift:** PSI 0.071 → 10.361 → 0.056 (límite: 0.20). [Abrir captura a tamaño completo](actividad8/evidence/screenshots/INC-02_drift_antes_durante_despues.png).
+
+![Evidencia visual INC-02: PSI antes, durante y después de la restauración del lote sintético](actividad8/evidence/screenshots/INC-02_drift_antes_durante_despues.png)
+
+**Alcance:** las capturas proceden de la ejecución sintética local; no constituyen mediciones de maquinaria real ni certifican un servicio 24/7.
+
 **Los resultados antes/durante/después son medidos por código**, salvo la intervención deliberadamente simulada. El runbook no finge reiniciar un servidor ni escalar contenedores cuando únicamente se elimina una falla del laboratorio. La cuarentena retira un lote sintético del flujo de entrada del laboratorio; no implica una cola industrial persistente.
 
 Revisión: [runbooks explicados](actividad8/docs/RUNBOOKS.md), [motor de simulaciones](actividad8/laboratory.py), [verificador independiente](actividad8/verify.py).
