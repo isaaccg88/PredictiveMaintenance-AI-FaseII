@@ -1,0 +1,6 @@
+__pycache__/
+.pytest_cache/
+mlruns/
+runtime/
+*.pyc
+artifacts/*.joblib

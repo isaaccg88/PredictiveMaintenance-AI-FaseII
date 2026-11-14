@@ -1,0 +1,10 @@
+FROM python:3.11-slim
+WORKDIR /workspace
+COPY requirements-runtime-api.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+COPY . /workspace/actividad8
+# El modelo binario no se versiona: entrenarlo durante el build es reproducible.
+RUN python -m actividad8.train_v2
+ENV ACT8_RUNTIME=/state LAB_MODE=0
+EXPOSE 8008
+CMD ["python","-m","uvicorn","actividad8.service:app","--host","0.0.0.0","--port","8008"]

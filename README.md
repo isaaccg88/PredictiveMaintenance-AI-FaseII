@@ -1,124 +1,103 @@
-# Predictive Maintenance AI — Fase II: Ejecución
+# Predictive Maintenance AI · Actividad 8 — Observabilidad y gobernanza operativa
 
-**Master en Inteligencia Artificial · Módulo 2 / Semana 8 · Proyecto académico**
+**Gestión de Proyectos de Inteligencia Artificial · Tecmilenio · Módulo 3 / Semana 10**  
+**Repositorio de entrega:** rama `actividad8-v2-observabilidad` de [PredictiveMaintenance-AI-FaseII](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/tree/actividad8-v2-observabilidad).  
+**Código original validado:** [Fase II, rama `main`](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/tree/main).
 
-**Estado verificado:** modelo temporal de 72 horas entrenado; los dos contenedores Docker fueron construidos y ejecutados realmente en GitHub Actions; FastAPI, Streamlit y SQLite aprobaron pruebas de integración. Los dos documentos PDF solicitados están publicados. 
+> **TRANSPARENCIA ACADÉMICA:** empresa, 60 máquinas, sensores, fallas y predicciones son sintéticos. Los escenarios de incidente están inyectados deliberadamente en el laboratorio. Esto NO implica evidencia de desempeño industrial real, detección de fallas reales ni despliegue cloud permanente. La decisión de mantenimiento es siempre humana.
 
-> **AVISO DE TRANSPARENCIA:** la empresa, las 60 máquinas, sus mediciones y las fallas son **100% sintéticas**. Se demuestra la implementación y evaluación de un modelo que predice si sucederá una falla dentro de las siguientes 72 horas **en un simulador**, no validez pronóstica industrial real, ni conocimiento exacto de cuándo fallará una máquina.
+## Resumen ejecutivo
 
-## 1. Continuidad con Fase I y actividades previas
+Se amplió el piloto Predictive Maintenance AI con un generador sintético V2, modelo Random Forest de horizonte 72 h, API FastAPI instrumentada, bitácoras JSONL, trazas correlacionadas (`trace_id` entre HTTP, inferencia y SQLite), seis reglas de alertas, SLO/error budgets, detección de drift con PSI, dashboard Streamlit, dos incidentes medidos y runbooks cuya recuperación se verifica por nuevas mediciones. GitHub Actions puede reconstruir los resultados sin alterar la versión original.
 
-Este repositorio materializa el piloto de 12 máquinas ficticias de una empresa manufacturera mexicana planteado en Fase I. La evaluación ocurre cada 6 horas simuladas y el horizonte del clasificador es de **72 horas**. Los técnicos conservan la decisión de inspeccionar o intervenir.
+## 1. Modelo y métricas
 
-Antecedentes: [Actividad 4, modelos preentrenados](https://github.com/isaaccg88/PredictiveMaintenance-AI-Activity4) y [Actividad 5, entrenamiento y MLflow](https://github.com/isaaccg88/PredictiveMaintenance-AI-Activity5). El AI4I 2020 de ambas actividades clasifica fallas por registro; **no sustenta una anticipación temporal de 72 horas**. Para Fase II se desarrolló un dataset temporal sintético nuevo, con eventos fechados, degradación y mantenimiento, y un modelo Random Forest entrenado específicamente sobre el objetivo futuro.
+- `actividad8/simulator.py`: generador reproducible V2 con 60 máquinas y 853 eventos sintéticos en la ejecución de referencia.
+- `actividad8/train_v2.py`: entrenamiento reproducible, separación cronológica y 12 máquinas piloto nunca usadas para ajuste.
+- [Resultados medidos V2](actividad8/results/evaluation_v2.json) y [metodología/limitaciones](actividad8/docs/METODOLOGIA.md).
 
-## 2. Arquitectura funcional
-
-```text
-Navegador Windows                  Red privada Docker Compose
-http://localhost:8501        ┌───────────────────────────┐
-         │                   │ Streamlit (web) :8501     │
-         └──────────────────>│ Tablero de 12 máquinas    │
-                             └──────────┬────────────────┘
-                                        │ HTTP / JSON
-                             ┌──────────▼────────────────┐
-                             │ FastAPI (api) :8000       │
-                             │ Validación con Pydantic   │
-                             └──────────┬────────────────┘
-                                  ┌─────┴─────────┐
-                                  ▼               ▼
-                            RandomForest      SQLite
-                            riesgo 72h       historial
-                                            volumen persistente
-```
-
-**Servicios Docker:** [compose.yaml](compose.yaml), [Dockerfile API](docker/Dockerfile.api) y [Dockerfile web](docker/Dockerfile.web). El backend se inicia primero y ofrece healthcheck; el frontend espera a que esté saludable.
-
-## 3. Cómo se construyó la predicción temporal
-
-[Simulador reproducible](src/simulation.py), semilla **202608**. Se generaron **129,600 lecturas** (60 máquinas × 2,160 instantes) espaciadas exactamente cada seis horas, **318 eventos de falla** distribuidos temporalmente, estados de parada/reparación y sensores con patrones de degradación probabilística.
-
-Para cada registro de una máquina en funcionamiento, la variable `failure_next_72h` vale **1** si existe algún evento de falla durante los **12 registros siguientes**: `t+6, t+12, ..., t+72 horas`. Una falla en el instante actual no se contabiliza como anticipada, y las últimas 12 lecturas de cada máquina se **censuran** por falta de información futura. Las medias y variaciones de sensores solo usan valores históricos disponibles hasta `t`.
-
-**Modelo:** [pipeline Random Forest](src/train.py) de scikit-learn, 12 características de sensores e historial. El umbral **0.64** se fijó exclusivamente sobre el conjunto de validación maximizando F2 sujeto a precisión >=20%. El modelo se serializó en [`artifacts/risk72h_model.joblib`](artifacts/risk72h_model.joblib), acompañado de [metadatos de features/umbral](artifacts/model_metadata.json), [lecturas del piloto](artifacts/pilot_snapshot.json) y [manifiesto SHA256](results/dataset_manifest.json).
-
-Se aplicaron particiones temporales con purga de 12 lecturas entre conjuntos. Solo las máquinas PM-001 a PM-048 participaron en entrenamiento y validación. **Las 12 máquinas PM-049 a PM-060 permanecieron completamente excluidas del ajuste**, y representan el piloto experimental fuera de la muestra de máquinas, pero dentro del mismo simulador.
-
-## 4. Resultados reales del dataset sintético
-
-| Indicador | Test temporal | Piloto de 12 máquinas NO vistas |
+| Métrica | Fase II V1 (generador antiguo) | Actividad 8 V2 (generador nuevo) |
 |---|---:|---:|
-| Registros evaluados | 19,906 | 4,991 |
-| Prevalencia positiva | 3.26% | 2.89% |
-| ROC-AUC | 0.8073 | 0.8621 |
-| Average Precision | 0.2286 | 0.2417 |
-| Precision | 20.83% | 16.36% |
-| Recall por registro | 37.19% | 37.50% |
-| F1 | 0.2670 | 0.2278 |
-| Fallas con al menos una alerta dentro de 72 h | 30 de 54 (55.56%) | 8 de 11 (72.73%) |
-| Anticipación media primera alerta | 61.6 h | 59.25 h |
-| Ventanas con falsa alarma / máquina-semana | 1.29 | 1.55 |
+| Precision en piloto | 16.36% | 72.38% |
+| Recall por ventana | 37.50% | 78.28% |
+| F1 | 0.2278 | 0.7522 |
+| ROC-AUC | 0.8621 | 0.9655 |
+| Average Precision | 0.2417 | 0.8144 |
+| Recall por evento | 8/11 (72.73%) | 31/35 (88.57%) |
+| Falsas ventanas / máquina-semana | 1.55 | 0.75 |
 
-**Interpretación crítica:** estos resultados verifican una capacidad de ranking dentro del simulador, pero el **F1 es bajo/modesto** y hay falsas alertas. El recall de eventos es diferente al recall por ventana; en el piloto se basa únicamente en **11 eventos**, por lo que es estadísticamente inestable. No deben extrapolarse a fábricas reales ni confundir un evento sintético detectado con mantenimiento que habría evitado el fallo.
+**Nota metodológica crucial:** V1 y V2 tienen mecanismos generadores diferentes; las cifras muestran propiedades de dos laboratorios sintéticos, NO mejoras atribuibles a una comparación justa del mismo algoritmo sobre los mismos datos. No se optimizó con la partición de piloto.
 
-Datos completos del experimento: [evaluación JSON](results/evaluation.json), [métricas CSV](results/model_metrics.csv), [curvas PR](results/figures), [test temporal](results/predictions_test_temporal.csv), [máquinas no vistas](results/predictions_test_unseen_machines.csv), [selección de umbral](results/threshold_validation.csv) y [importancia de variables](results/feature_importance.csv).
+## 2. Criterio 1 — Diseño de monitorización y observabilidad (25 pts)
 
-El dataset completo reproducible, de mayor tamaño, está en los **artefactos descargables de GitHub Actions**; no se versiona un CSV grande innecesario en Git. Se incluye una [muestra trazable de telemetría](data/generated/telemetry_sample.csv) y el código exacto que lo reconstruye.
+| Señal | Captura | Objetivo operativo |
+|---|---|---|
+| Disponibilidad HTTP | `/predict`: estados 2xx/5xx y fallos de cliente | El servicio recibe y procesa solicitudes válidas |
+| Latencia p95 | Duraciones reales de peticiones y spans `model.infer` | Entrega oportuna de predicciones |
+| Logs estructurados | `actividad8/runtime/events.jsonl` en ejecución | Diagnosticar errores con tiempo UTC y `trace_id` |
+| Trazas correlacionadas | eventos `http.request`, `model.infer`, `sqlite.commit` | Seguir inferencia y persistencia |
+| Calidad supervisada | AUC, precision, recall, F1 por ventana | Reconocer degradación cuando se conocen etiquetas |
+| Data drift | PSI sobre temperatura, referencia vs lote | Detectar desviación de distribución |
+| Dashboard | `actividad8/dashboard.py` | Supervisar SLO, estado y episodios |
 
-## 5. Ejecutar la solución en Docker Desktop
+**Alcance de trazas:** son eventos correlacionados por `trace_id` mediante JSONL y SQLite; no se declara instrumentación OpenTelemetry ni trazas distribuidas completas. **Métricas y logs** se generan en el servicio, mientras que MLflow documenta experimentos de entrenamiento.
 
-Requisitos: Docker Desktop, WSL2 / motor de contenedores Linux y GitHub Desktop o Git. La prueba de instalación `docker run --rm hello-world` ya fue superada por el estudiante. **No hace falta instalar Python en Windows para ejecutar la aplicación.**
+## 3. Criterio 2 — SLO, error budget y seis reglas de alerta (25 pts)
+
+Los SLO iniciales de laboratorio son 99% de disponibilidad y 99% de solicitudes válidas exitosas en máximo 500 ms. Para una ventana de 12 solicitudes elegibles, presupuesto de error = 12×(1−0.99) = 0.12 fallos. Una petición fallida agota el presupuesto y lo supera; son ventanas **didácticas y pequeñas**, no un SLO industrial calibrado. Se muestran denominadores y ratio de consumo.
+
+| Regla | Severidad | Umbral | Runbook |
+|---|---|---|---|
+| API indisponible | P1 | disponibilidad <99% | RB-AVAIL |
+| HTTP 5xx | P1 | >1% errores elegibles | RB-AVAIL |
+| Latencia elevada | P2 | solicitudes oportunas <99% / p95 de diagnóstico | RB-LATENCY |
+| CPU elevada | P2 | CPU >85% sostenido | RB-CAPACITY |
+| Data drift | P2 | PSI >0.20 y al menos 100 observaciones | RB-DRIFT |
+| Calidad | P2 | AUC <0.75 con etiquetas maduras | RB-QUALITY |
+
+Las seis reglas están configuradas; **no todas se provocan en esta demostración**. Se prueba deduplicación: `EMITTED` → `SUPPRESSED_DUPLICATE` → `RESOLVED` tras corrección. El presupuesto por ventana es un ejercicio de laboratorio y no sustituye ventanas largas de operación real.
+
+Código: [reglas](actividad8/rules.py), [catálogo de runbooks](actividad8/runbooks.py).
+
+## 4. Criterio 3 — Incidentes y runbooks ejecutados (25 pts)
+
+| Caso | Antes | Durante | Después | Evidencia |
+|---|---|---|---|---|
+| INC-01 Latencia | Peticiones HTTP sanas | Retraso controlado de 650 ms en `/predict`, alerta | Retirar inyección, repetir HTTP y verificar dos ventanas sanas | [Incidentes JSON](actividad8/evidence/incidents.json) |
+| INC-02 Drift | PSI de lote normal | Sensor sintético desplazado +14 °C y puesto en cuarentena | Restaurar lote limpio y comprobar PSI <0.20 | [Resumen](actividad8/evidence/summary.json) |
+
+**Los resultados antes/durante/después son medidos por código**, salvo la intervención deliberadamente simulada. El runbook no finge reiniciar un servidor ni escalar contenedores cuando únicamente se elimina una falla del laboratorio. La cuarentena retira un lote sintético del flujo de entrada del laboratorio; no implica una cola industrial persistente.
+
+Revisión: [runbooks explicados](actividad8/docs/RUNBOOKS.md), [motor de simulaciones](actividad8/laboratory.py), [verificador independiente](actividad8/verify.py).
+
+## 5. Criterio 4 — Respuesta automatizada, evidencia y gobernanza (25 pts)
+
+La lógica automatiza la medición, clasificación, supresión de duplicados, respuesta limitada a fallas del laboratorio, verificación con nuevas observaciones y reporte final. Si la recuperación no cumple los criterios, el verificador marca `ESCALATE` y la corrida falla. No se realizan despliegues de modelos nuevos sin aprobación humana.
+
+- [Corridas de GitHub Actions](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad8.yml) — ejecutar y comprobar el estado **PASS**; no afirmar éxito de CI hasta observar una corrida verde.
+- [Workflow fuente](.github/workflows/actividad8.yml) — reentrena, registra MLflow, ejecuta pruebas, levanta FastAPI y Streamlit, inyecta incidentes, verifica resultados y publica un artefacto de evidencia.
+- [Resultados reproducibles](actividad8/results/evaluation_v2.json) y [registro de incidentes](actividad8/evidence/incidents.json) — valores de una corrida local; las cifras de CI se regeneran y pueden diferir mínimamente por entorno.
+- [MLflow](actividad8/train_v2.py) — corridas con parámetros, métricas y artefactos; los datos de tracking generados se guardan como artefacto de Actions y no como una base permanente compartida.
+
+## 6. Ejecutar localmente (Windows)
+
+Con GitHub Desktop o Git y Docker Desktop instalado:
 
 ```powershell
-git clone https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII.git
+git clone --branch actividad8-v2-observabilidad https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII.git
 cd PredictiveMaintenance-AI-FaseII
-docker compose up --build -d --wait
-docker compose ps
+docker compose -f actividad8/compose.yaml up --build -d --wait
 ```
 
-- **Dashboard de las 12 máquinas:** http://localhost:8501
-- **Swagger de FastAPI:** http://localhost:8000/docs
-- **Salud del backend:** http://localhost:8000/health
-- **Historial de predicciones:** http://localhost:8000/predictions
+- **Dashboard:** http://localhost:8510
+- **Swagger:** http://localhost:8008/docs
+- **Healthcheck:** http://localhost:8008/health
+- **Métricas HTTP:** http://localhost:8008/metrics
 
-Con Docker Desktop abierto, selecciona una de las máquinas, evalúa el riesgo de falla en las próximas 72 horas y revisa la respuesta. Puedes probar modificaciones de sensores simuladas: se registran como **escenarios hipotéticos**, no como telemetría real.
+Para parar y conservar SQLite: `docker compose -f actividad8/compose.yaml down` (no usar `down -v` para conservar historial). La inyección de fallas queda **deshabilitada por defecto** en Docker de demostración. Para regenerar el experimento completo se usa el workflow de GitHub Actions, sin requisitos locales de Python.
 
-Para detener sin perder SQLite: `docker compose down`. El volumen `prediction_state` conserva el historial. No ejecutar `down -v` si se quiere mantenerlo.
+## 7. Cómo se entrega
 
-## 6. Endpoints, pruebas de integración y casos extremos
+Este README es el **documento técnico principal** y enlaza toda la evidencia verificable. Repositorio accesible por URL, sin depender de un ZIP para lectura del código. Si la plataforma solicita estrictamente un ZIP, esta rama puede descargarse desde **Code → Download ZIP**. La autorización verbal de omitir PDFs debe confirmarse con el profesor, puesto que la instrucción escrita de la plataforma sigue mencionando esos formatos.
 
-Código API: [app/api.py](app/api.py); frontend: [app/dashboard.py](app/dashboard.py). Contratos `GET /health`, `GET /model/info`, `GET /machines`, `GET /telemetry/{machine_id}`, `POST /predict`, `GET /predictions`.
-
-[Pruebas unitarias](tests/test_temporal.py) reconstruyen la etiqueta futura a 72h y validan censura, separación cronológica, máquinas excluidas, métricas y umbral. [Prueba de integración Docker](tests/integration.py) ejecuta peticiones HTTP reales, verifica doce máquinas, inferencia y persistencia, escenario hipotético y rechazo de datos inválidos (HTTP 404 y 422). El frontend aprobó su healthcheck HTTP.
-
-Automatización [GitHub Actions](.github/workflows/validate-deploy.yml): instala dependencias fijadas, regenera dataset, prueba el modelo, construye ambos contenedores, los levanta con Docker Compose y verifica integración. El workflow publica los resultados **solo después de superar todos los controles**.
-
-## 7. Entregables académicos en el repositorio
-
-| Entregable | Enlace |
-|---|---|
-| Código completo y Docker funcional | [app/](app/), [src/](src/), [docker/](docker/), [compose.yaml](compose.yaml) |
-| Manual PDF de despliegue local y nube | [Manual_Despliegue_Nube_FaseII.pdf](docs/Manual_Despliegue_Nube_FaseII.pdf) |
-| Documento PDF de validación y pruebas | [Documento_Validacion_Pruebas_FaseII.pdf](docs/Documento_Validacion_Pruebas_FaseII.pdf) |
-| Manual técnico ampliado | [docs/manual_deploy_cloud.md](docs/manual_deploy_cloud.md) |
-| Protocolo de pruebas y casos extremos | [docs/validation_and_tests.md](docs/validation_and_tests.md) |
-| Ejecución CI y artefactos | [Actions](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions) |
-| Evidencias auténticas de Docker Windows y dashboard | [docs/local_evidence/](docs/local_evidence/) — **pendientes de subir** |
-
-**Formato de entrega:** exclusivamente URL del repositorio público GitHub, **sin ZIP**, según el acuerdo académico de este proyecto. Los dos PDF obligatorios permanecen dentro de GitHub.
-
-## 8. Estrategia de despliegue en la nube
-
-El manual incluye paso a paso, dependencias, Dockerfiles y comparación operativa con PaaS de contenedores. Para la nube se consideran registro OCI, HTTPS, variables de entorno, secretos, healthchecks, observabilidad y migración de SQLite a persistencia administrada para varias réplicas. **No se realizó despliegue cloud comercial ni se generaron cargos**.
-
-## 9. Limitaciones y ética
-
-El modelo aprende una degradación sintética programada, no una relación estimada sobre sensores reales. Las doce máquinas excluidas siguen procediendo del mismo generador. Las etiquetas se refieren a presencia de una falla durante una ventana futura y no determinan su momento exacto. Toda alerta requiere revisión humana; no se emiten órdenes automáticas de mantenimiento. La adopción real requeriría datos prospectivos, calibración, grupos industriales distintos, validación técnica y gestión de drift.
-
-## 10. Declaración de uso de inteligencia artificial
-
-| Herramienta | Finalidad | Control |
-|---|---|---|
-| ChatGPT de OpenAI | Diseño temporal, generación de datos sintéticos, código ML, API, frontend, Docker, pruebas, manuales y auditoría | Las métricas y verificaciones se ejecutan con código real, reproducible y visible en GitHub; el estudiante revisa la entrega final. |
-
-**Origen de código y modelo:** desarrollo sintético nuevo de Fase II; referencias del flujo: [Actividad 4](https://github.com/isaaccg88/PredictiveMaintenance-AI-Activity4), [Actividad 5](https://github.com/isaaccg88/PredictiveMaintenance-AI-Activity5), documentaciones oficiales de [Docker](https://docs.docker.com), [FastAPI](https://fastapi.tiangolo.com) y [scikit-learn](https://scikit-learn.org).
+**Nota de distribución del modelo:** el `.joblib` se regenera desde código determinista en el build Docker y en GitHub Actions; no se versiona un binario potencialmente incompatible con otros entornos. Los artefactos de Actions incluyen el modelo regenerado.

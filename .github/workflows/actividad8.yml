@@ -1,0 +1,66 @@
+name: Actividad 8 - V2, MLflow, Observabilidad e Incidentes
+on:
+  push:
+    branches: [actividad8-v2-observabilidad]
+    paths:
+      - 'actividad8/**'
+      - '.github/workflows/actividad8.yml'
+      - 'README.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  observability-lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: actividad8/requirements.txt
+      - name: Instalar dependencias fijas
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r actividad8/requirements.txt
+      - name: Comprobar etiquetas, reglas y no duplicación
+        run: python -m pytest actividad8/test_activity8.py -v
+      - name: Reconstruir dataset y entrenar modelo V2 + registrar MLflow
+        run: python -m actividad8.train_v2 --mlflow
+      - name: Ejecutar API, incidentes y runbooks sobre HTTP real
+        env:
+          LAB_MODE: '1'
+          LAB_TOKEN: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          nohup python -m uvicorn actividad8.service:app --host 127.0.0.1 --port 8008 > actividad8/evidence/api_server.log 2>&1 &
+          ready=0
+          for i in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:8008/health > actividad8/evidence/health.json; then ready=1; break; fi
+            sleep 2
+          done
+          if [ "$ready" -ne 1 ]; then cat actividad8/evidence/api_server.log; exit 1; fi
+          python -m actividad8.laboratory
+          python -m actividad8.verify
+      - name: Comprobar dashboard Streamlit ejecutándose
+        run: |
+          nohup streamlit run actividad8/dashboard.py --server.headless=true --server.port=8510 > actividad8/evidence/dashboard_server.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8510/_stcore/health > actividad8/evidence/dashboard_health.txt; then exit 0; fi
+            sleep 2
+          done
+          cat actividad8/evidence/dashboard_server.log
+          exit 1
+      - name: Publicar evidencia reproducible y MLflow
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: actividad8-v2-evidencia-verificada
+          path: |
+            actividad8/evidence/
+            actividad8/results/
+            actividad8/artifacts/
+            actividad8/mlruns/
+            actividad8/runtime/events.jsonl
+          if-no-files-found: warn
+          retention-days: 30

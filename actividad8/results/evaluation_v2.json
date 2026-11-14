@@ -1,0 +1,126 @@
+{
+  "status": "measured_on_synthetic_v2",
+  "generator_version": 2,
+  "baseline_faseii_reported_on_v1_pilot": {
+    "precision": 0.1636363636,
+    "recall": 0.375,
+    "f1": 0.2278481013,
+    "roc_auc": 0.8621312152,
+    "average_precision": 0.2416871022,
+    "event_recall": 0.7272727272727273,
+    "events": 11
+  },
+  "not_directly_comparable": true,
+  "seed": 20261114,
+  "rows": 129600,
+  "failure_events_total": 853,
+  "splits": {
+    "train": {
+      "rows": 65100,
+      "positives": 5193
+    },
+    "validation": {
+      "rows": 14581,
+      "positives": 1200
+    },
+    "test_temporal": {
+      "rows": 19619,
+      "positives": 1644
+    },
+    "test_pilot": {
+      "rows": 4896,
+      "positives": 442
+    }
+  },
+  "model": {
+    "model": "RandomForest",
+    "seed": 20261114,
+    "horizon_hours": 72,
+    "interval_hours": 6,
+    "features": [
+      "temperature_c",
+      "vibration_mm_s",
+      "pressure_bar",
+      "rpm",
+      "torque_nm",
+      "wear_index",
+      "load_pct",
+      "hours_since_service",
+      "temperature_avg_24h",
+      "vibration_avg_24h",
+      "wear_delta_72h",
+      "machine_type"
+    ],
+    "threshold": 0.5,
+    "threshold_source": "validation_only",
+    "machines_train": 48,
+    "machines_holdout": 12,
+    "synthetic": true,
+    "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
+  },
+  "metrics": {
+    "validation": {
+      "samples": 14581,
+      "positives": 1200,
+      "prevalence": 0.08229888210685138,
+      "threshold": 0.5,
+      "precision": 0.6882232811436352,
+      "recall": 0.8425,
+      "f1": 0.7575871112776321,
+      "f2": 0.8063486999521455,
+      "roc_auc": 0.9759795605709588,
+      "average_precision": 0.8608727325848972,
+      "tp": 1011,
+      "fp": 458,
+      "fn": 189,
+      "tn": 12923
+    },
+    "test_temporal": {
+      "samples": 19619,
+      "positives": 1644,
+      "prevalence": 0.08379631989398033,
+      "threshold": 0.5,
+      "precision": 0.7007186858316222,
+      "recall": 0.8302919708029197,
+      "f1": 0.7600222717149221,
+      "f2": 0.8006804317221962,
+      "roc_auc": 0.9708425124107896,
+      "average_precision": 0.8529531587178195,
+      "tp": 1365,
+      "fp": 583,
+      "fn": 279,
+      "tn": 17392,
+      "failure_events_evaluable": 132,
+      "failure_events_detected": 122,
+      "event_recall": 0.9242424242424242,
+      "mean_first_alert_lead_hours": 66.8360655737705,
+      "false_positive_windows": 583,
+      "false_windows_per_machine_week": 0.8320505632295224,
+      "note": "False alarm count is per six-hour window, not deduplicated episodes"
+    },
+    "test_pilot": {
+      "samples": 4896,
+      "positives": 442,
+      "prevalence": 0.09027777777777778,
+      "threshold": 0.5,
+      "precision": 0.7238493723849372,
+      "recall": 0.7828054298642534,
+      "f1": 0.7521739130434782,
+      "f2": 0.7702582368655387,
+      "roc_auc": 0.9655355804025869,
+      "average_precision": 0.8143738731738742,
+      "tp": 346,
+      "fp": 132,
+      "fn": 96,
+      "tn": 4322,
+      "failure_events_evaluable": 35,
+      "failure_events_detected": 31,
+      "event_recall": 0.8857142857142857,
+      "mean_first_alert_lead_hours": 67.93548387096774,
+      "false_positive_windows": 132,
+      "false_windows_per_machine_week": 0.7549019607843137,
+      "note": "False alarm count is per six-hour window, not deduplicated episodes"
+    }
+  },
+  "elapsed_seconds": 13.79
+}

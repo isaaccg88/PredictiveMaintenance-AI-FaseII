@@ -1,0 +1,339 @@
+{
+  "synthetic": true,
+  "start_utc": "2026-11-14T20:46:04.794722+00:00",
+  "service": "real_local_http_FastAPI",
+  "slo": {
+    "availability": 0.99,
+    "timely": 0.99,
+    "max_latency_ms": 500,
+    "cpu_pct": 85,
+    "drift_psi": 0.2,
+    "quality_min_auc": 0.75
+  },
+  "rules": {
+    "availability": {
+      "severity": "P1",
+      "condition": "available / eligible < 99%",
+      "runbook": "RB-AVAIL"
+    },
+    "http_5xx": {
+      "severity": "P1",
+      "condition": "5xx > 1% of eligible",
+      "runbook": "RB-AVAIL"
+    },
+    "latency": {
+      "severity": "P2",
+      "condition": "timely / eligible < 99%",
+      "runbook": "RB-LATENCY"
+    },
+    "cpu": {
+      "severity": "P2",
+      "condition": "CPU average > 85%",
+      "runbook": "RB-CAPACITY"
+    },
+    "drift": {
+      "severity": "P2",
+      "condition": "PSI > 0.2 and sample >=100",
+      "runbook": "RB-DRIFT"
+    },
+    "quality": {
+      "severity": "P2",
+      "condition": "AUC < 0.75 with mature labels",
+      "runbook": "RB-QUALITY"
+    }
+  },
+  "incidents": [
+    {
+      "incident_id": "INC-01",
+      "name": "latency_injection",
+      "baseline": {
+        "status": "MEASURED",
+        "eligible": 12,
+        "failures_5xx": 0,
+        "availability": 1.0,
+        "timely_ratio": 1.0,
+        "p95_ms": 35.8922,
+        "error_budget": 0.1200000000000001,
+        "availability_budget_spent_pct": 0.0,
+        "latency_budget_spent_pct": 0.0,
+        "availability_breached": false,
+        "latency_breached": false
+      },
+      "during": {
+        "status": "MEASURED",
+        "eligible": 12,
+        "failures_5xx": 0,
+        "availability": 1.0,
+        "timely_ratio": 0.0,
+        "p95_ms": 689.2183,
+        "error_budget": 0.1200000000000001,
+        "availability_budget_spent_pct": 0.0,
+        "latency_budget_spent_pct": 9999.99999999999,
+        "availability_breached": false,
+        "latency_breached": true
+      },
+      "after": {
+        "status": "MEASURED",
+        "eligible": 12,
+        "failures_5xx": 0,
+        "availability": 1.0,
+        "timely_ratio": 1.0,
+        "p95_ms": 37.2224,
+        "error_budget": 0.1200000000000001,
+        "availability_budget_spent_pct": 0.0,
+        "latency_budget_spent_pct": 0.0,
+        "availability_breached": false,
+        "latency_breached": false
+      },
+      "runbook": {
+        "runbook": "RB-LATENCY",
+        "status": "RESOLVED",
+        "action": "remove_temporary_lab_fault_and_remeasure",
+        "before": {
+          "status": "MEASURED",
+          "eligible": 12,
+          "failures_5xx": 0,
+          "availability": 1.0,
+          "timely_ratio": 0.0,
+          "p95_ms": 689.2183,
+          "error_budget": 0.1200000000000001,
+          "availability_budget_spent_pct": 0.0,
+          "latency_budget_spent_pct": 9999.99999999999,
+          "availability_breached": false,
+          "latency_breached": true
+        },
+        "after": {
+          "status": "MEASURED",
+          "eligible": 12,
+          "failures_5xx": 0,
+          "availability": 1.0,
+          "timely_ratio": 1.0,
+          "p95_ms": 37.2224,
+          "error_budget": 0.1200000000000001,
+          "availability_budget_spent_pct": 0.0,
+          "latency_budget_spent_pct": 0.0,
+          "availability_breached": false,
+          "latency_breached": false
+        },
+        "verification_checks": {
+          "first_window_healthy": true,
+          "second_window_healthy": true,
+          "actual_http_requests": true,
+          "deduplicated": true
+        },
+        "closed_utc": "2026-11-14T20:46:14.177220+00:00",
+        "simulated_environment": true,
+        "physical_maintenance_triggered": false
+      }
+    },
+    {
+      "incident_id": "INC-02",
+      "name": "synthetic_data_drift",
+      "baseline_psi": 0.07111276725108286,
+      "during_psi": 10.360803987839729,
+      "after_psi": 0.056461912289161524,
+      "quarantine": {
+        "quarantined_rows": 450,
+        "operational_predictions_from_shifted_rows": 0,
+        "action": "batch_removed_from_lab_input"
+      },
+      "runbook": {
+        "runbook": "RB-DRIFT",
+        "status": "RESOLVED",
+        "action": "quarantine_shifted_batch_restore_baseline_and_remeasure",
+        "before": {
+          "psi": 10.360803987839729
+        },
+        "after": {
+          "psi": 0.056461912289161524
+        },
+        "verification_checks": {
+          "detected": true,
+          "quarantined_no_prediction": true,
+          "restored_psi_below_limit": true
+        },
+        "closed_utc": "2026-11-14T20:46:14.178942+00:00",
+        "simulated_environment": true,
+        "physical_maintenance_triggered": false
+      }
+    }
+  ],
+  "checks": {
+    "quality_auc": 0.9655355804025869,
+    "quality_breached": false,
+    "cpu_pct": 0.0,
+    "cpu_status": "MEASURED_RUNNER_NOT_CONTAINER",
+    "rules_configured": 6,
+    "evaluated_rules": {
+      "availability": {
+        "breach": false,
+        "status": "OK",
+        "severity": "P1",
+        "runbook": "RB-AVAIL"
+      },
+      "http_5xx": {
+        "breach": false,
+        "status": "OK",
+        "severity": "P1",
+        "runbook": "RB-AVAIL"
+      },
+      "latency": {
+        "breach": false,
+        "status": "OK",
+        "severity": "P2",
+        "runbook": "RB-LATENCY"
+      },
+      "cpu": {
+        "breach": false,
+        "status": "OK",
+        "severity": "P2",
+        "runbook": "RB-CAPACITY"
+      },
+      "drift": {
+        "breach": false,
+        "status": "OK",
+        "severity": "P2",
+        "runbook": "RB-DRIFT"
+      },
+      "quality": {
+        "breach": false,
+        "status": "OK",
+        "severity": "P2",
+        "runbook": "RB-QUALITY"
+      }
+    }
+  },
+  "alerts": [
+    {
+      "at_utc": "2026-11-14T20:46:13.402076+00:00",
+      "rule": "latency",
+      "action": "EMITTED",
+      "severity": "P2",
+      "details": {
+        "status": "MEASURED",
+        "eligible": 12,
+        "failures_5xx": 0,
+        "availability": 1.0,
+        "timely_ratio": 0.0,
+        "p95_ms": 689.2183,
+        "error_budget": 0.1200000000000001,
+        "availability_budget_spent_pct": 0.0,
+        "latency_budget_spent_pct": 9999.99999999999,
+        "availability_breached": false,
+        "latency_breached": true
+      }
+    },
+    {
+      "at_utc": "2026-11-14T20:46:13.402088+00:00",
+      "rule": "latency",
+      "action": "SUPPRESSED_DUPLICATE",
+      "severity": "P2",
+      "details": {
+        "status": "MEASURED",
+        "eligible": 12,
+        "failures_5xx": 0,
+        "availability": 1.0,
+        "timely_ratio": 0.0,
+        "p95_ms": 689.2183,
+        "error_budget": 0.1200000000000001,
+        "availability_budget_spent_pct": 0.0,
+        "latency_budget_spent_pct": 9999.99999999999,
+        "availability_breached": false,
+        "latency_breached": true
+      }
+    },
+    {
+      "at_utc": "2026-11-14T20:46:14.177178+00:00",
+      "rule": "latency",
+      "action": "RESOLVED",
+      "severity": "P2",
+      "details": {
+        "status": "MEASURED",
+        "eligible": 12,
+        "failures_5xx": 0,
+        "availability": 1.0,
+        "timely_ratio": 1.0,
+        "p95_ms": 37.2224,
+        "error_budget": 0.1200000000000001,
+        "availability_budget_spent_pct": 0.0,
+        "latency_budget_spent_pct": 0.0,
+        "availability_breached": false,
+        "latency_breached": false
+      }
+    },
+    {
+      "at_utc": "2026-11-14T20:46:14.178742+00:00",
+      "rule": "drift",
+      "action": "EMITTED",
+      "severity": "P2",
+      "details": {
+        "psi": 10.360803987839729,
+        "count": 450
+      }
+    },
+    {
+      "at_utc": "2026-11-14T20:46:14.178935+00:00",
+      "rule": "drift",
+      "action": "RESOLVED",
+      "severity": "P2",
+      "details": {
+        "psi": 0.056461912289161524
+      }
+    }
+  ],
+  "runbooks_catalog": {
+    "RB-LATENCY": {
+      "trigger": "p95 or timely SLO violation",
+      "owner": "Service SRE",
+      "steps": [
+        "Identify slow model span by trace_id",
+        "Remove controlled delay",
+        "Send fresh HTTP requests",
+        "Check two healthy windows",
+        "Escalate if breach persists"
+      ]
+    },
+    "RB-DRIFT": {
+      "trigger": "PSI >0.20 with >=100 recent observations",
+      "owner": "ML engineer",
+      "steps": [
+        "Confirm distribution and sample size",
+        "Quarantine shifted synthetic batch",
+        "Restore validated sensor batch",
+        "Recompute PSI from NEW input",
+        "Escalate if drift persists"
+      ]
+    },
+    "RB-AVAIL": {
+      "trigger": "availability or 5xx SLO violated",
+      "owner": "Service SRE",
+      "steps": [
+        "Stop controlled fault",
+        "Recheck /health",
+        "Repeat real POST /predict",
+        "Validate no duplicated inferences for failed attempts",
+        "Escalate if unavailable"
+      ]
+    },
+    "RB-QUALITY": {
+      "trigger": "AUC below threshold with mature labels",
+      "owner": "ML lead",
+      "steps": [
+        "Validate labels",
+        "Check drift",
+        "Evaluate candidate model",
+        "Require human approval before promoting model"
+      ]
+    },
+    "RB-CAPACITY": {
+      "trigger": "CPU >85% sustained",
+      "owner": "SRE",
+      "steps": [
+        "Inspect load",
+        "Measure again",
+        "Escalate capacity if persists"
+      ]
+    }
+  },
+  "end_utc": "2026-11-14T20:46:14.286334+00:00"
+}

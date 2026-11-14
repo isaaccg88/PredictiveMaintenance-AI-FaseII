@@ -1,0 +1,8 @@
+FROM python:3.11-slim
+WORKDIR /workspace
+COPY requirements-runtime-web.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+COPY . /workspace/actividad8
+ENV ACT8_API=http://api:8008
+EXPOSE 8510
+CMD ["streamlit","run","actividad8/dashboard.py","--server.headless=true","--server.address=0.0.0.0","--server.port=8510"]

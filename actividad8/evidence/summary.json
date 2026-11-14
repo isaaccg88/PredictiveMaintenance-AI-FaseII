@@ -1,0 +1,9 @@
+{
+  "both_runbooks_verified": true,
+  "latency_ms_during": 689.2183,
+  "latency_ms_after": 37.2224,
+  "drift_psi_during": 10.360803987839729,
+  "drift_psi_after": 0.056461912289161524,
+  "alerts_emitted": 2,
+  "alerts_suppressed": 1
+}

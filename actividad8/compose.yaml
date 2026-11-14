@@ -1,0 +1,29 @@
+name: predictive-maintenance-actividad8
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    ports:
+      - '127.0.0.1:8008:8008'
+    volumes:
+      - a8_history:/state
+    healthcheck:
+      test: ['CMD','python','-c','import urllib.request; urllib.request.urlopen("http://127.0.0.1:8008/health",timeout=5)']
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 45s
+    restart: unless-stopped
+  dashboard:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.web
+    ports:
+      - '127.0.0.1:8510:8510'
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  a8_history:

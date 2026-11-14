@@ -1,0 +1,26 @@
+{
+  "model": "RandomForest",
+  "seed": 20261114,
+  "horizon_hours": 72,
+  "interval_hours": 6,
+  "features": [
+    "temperature_c",
+    "vibration_mm_s",
+    "pressure_bar",
+    "rpm",
+    "torque_nm",
+    "wear_index",
+    "load_pct",
+    "hours_since_service",
+    "temperature_avg_24h",
+    "vibration_avg_24h",
+    "wear_delta_72h",
+    "machine_type"
+  ],
+  "threshold": 0.5,
+  "threshold_source": "validation_only",
+  "machines_train": 48,
+  "machines_holdout": 12,
+  "synthetic": true,
+  "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
+}
