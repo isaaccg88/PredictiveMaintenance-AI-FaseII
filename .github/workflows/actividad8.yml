@@ -28,6 +28,8 @@ jobs:
         run: python -m pytest actividad8/test_activity8.py -v
       - name: Reconstruir dataset y entrenar modelo V2 + registrar MLflow
         run: python -m actividad8.train_v2 --mlflow
+      - name: Auditar tracking MLflow y exportar métricas verificadas
+        run: python -m actividad8.mlflow_audit
       - name: Ejecutar API, incidentes y runbooks sobre HTTP real
         env:
           LAB_MODE: '1'
