@@ -60,6 +60,7 @@ jobs:
           done
           test "$ready" -eq 1 || (cat actividad8/evidence/mlflow_ui_server.log && exit 1)
           # Dashboard real: reutiliza el mismo servidor API e incidents.json.
+          export PYTHONPATH="$PWD"
           nohup streamlit run actividad8/dashboard.py --server.headless=true --server.port=8510 > actividad8/evidence/streamlit_ui_server.log 2>&1 &
           streamlit_ready=0
           for i in $(seq 1 60); do
