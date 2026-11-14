@@ -47,7 +47,7 @@ def main():
                 raise AssertionError(f"Métrica MLflow no coincide con reporte: {key}")
             verified[group][metric]=observed
     artifacts=sorted(item.path for item in client.list_artifacts(record["run_id"]))
-    for required in ("evaluation_v2.json","metadata_v2.json"):
+    for required in ("evaluation_v2.json","metadata_v2.json","model_v2.joblib"):
         if required not in artifacts:
             raise AssertionError(f"Falta artefacto MLflow: {required}")
     export={
