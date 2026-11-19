@@ -84,6 +84,25 @@ El [benchmark reproducible](actividad9/benchmark.py) ejecuta POST /predict con c
 
 **Objetivos propuestos para un piloto cloud:** disponibilidad ≥99%, respuestas oportunas 2xx ≤500 ms en ≥99% de peticiones y revisión de p95 ≤500 ms. Son **metas**, no SLA contractual observado en AWS.
 
+### Tabla 1. Línea base de rendimiento y comparación horizontal (última ejecución verificada)
+
+Las mediciones siguientes proceden de [GitHub Actions #44569819287](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/44569819287), con **60 solicitudes por ventana y dos procesos que comparten el runner**. Se incluyen todas las concurrencias evaluadas, no solo la mejor.
+
+| API | Concurrencia | Solicitudes | p95 (ms) | Throughput (req/s) | Oportunidad ≤500 ms |
+|---|---:|---:|---:|---:|---:|
+| 1 instancia | 1 | 60 | 27.9 | 51.21 | 100.0% |
+| 1 instancia | 4 | 60 | 86.4 | 52.95 | 100.0% |
+| 1 instancia | 8 | 60 | 168.3 | 54.62 | 100.0% |
+| 1 instancia | 16 | 60 | 323.9 | 54.30 | 100.0% |
+| 2 instancias | 1 | 60 | 28.9 | 36.76 | 100.0% |
+| 2 instancias | 4 | 60 | 70.6 | 85.33 | 100.0% |
+| 2 instancias | 8 | 60 | 187.6 | 75.39 | 100.0% |
+| 2 instancias | 16 | 60 | 328.1 | 74.05 | 100.0% |
+
+**Interpretación:** todas las ventanas de esta ejecución alcanzaron 100% de respuestas oportunas; ello no garantiza 99% en producción ni otros días. El *throughput* a concurrencia 4 pasa de 52.95 a 85.33 req/s (61.2% superior). Son observaciones del mismo host, no una prueba de alta disponibilidad cloud.
+
+**Baseline de recursos:** [load_benchmark.json](actividad9/evidence/load_benchmark.json) conserva RSS y tiempo CPU de ambos procesos del runner. Esas magnitudes no equivalen a reservas CPU/RAM de un contenedor Fargate.
+
 - [Resultado crudo de benchmarking](actividad9/evidence/load_benchmark.json)
 - [Script de carga](actividad9/benchmark.py)
 - [Evidencia de la ejecución de CI](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad9.yml)
@@ -105,6 +124,22 @@ El [modelo económico reproducible](actividad9/finops.py) estudia tres arquitect
 **Tarifas públicas de referencia en us-east-1:** Linux/x86 Fargate USD **0.04048/vCPU-h** y **0.004445/GB-h**; ARM USD **0.03238/vCPU-h** y **0.00356/GB-h**; ALB USD **0.0225/h** + **0.008/LCU-h** según dimensiones de carga. El supuesto de una LCU/h es aproximado.
 
 **Importes NO verificados como cotización:** RDS Single-AZ USD 45/mes, Multi-AZ USD 95/mes, logs USD 0.50/GB, egreso USD 0.09/GB, almacenamiento USD 0.023/GB-mes. Son variables de simulación. **NAT, WAF, backups, soporte y costo humano se excluyen** de totales; deberán presupuestarse antes de aprobar el despliegue. No proyectar ROI financiero con estos importes sin validación completa.
+
+### Tabla 2. Proyección económica en nueve escenarios (USD, hipótesis)
+
+| Volumen | Arquitectura | API estimadas | USD/mes | USD/1000 inferencias |
+|---|---|---:|---:|---:|
+| piloto (0.5 M/mes) | `cloud_naive` | 1 | 128.70 | 0.25740 |
+| piloto (0.5 M/mes) | `ha_without_rightsizing` | 2 | 214.74 | 0.42948 |
+| piloto (0.5 M/mes) | `proposed_rightsized_arm` | 2 | 167.89 | 0.33578 |
+| crecimiento (10 M/mes) | `cloud_naive` | 1 | 131.46 | 0.01315 |
+| crecimiento (10 M/mes) | `ha_without_rightsizing` | 2 | 217.50 | 0.02175 |
+| crecimiento (10 M/mes) | `proposed_rightsized_arm` | 2 | 170.65 | 0.01706 |
+| expansion (60 M/mes) | `cloud_naive` | 6 | 326.16 | 0.00544 |
+| expansion (60 M/mes) | `ha_without_rightsizing` | 7 | 412.20 | 0.00687 |
+| expansion (60 M/mes) | `proposed_rightsized_arm` | 14 | 358.16 | 0.00597 |
+
+En el escenario de 10 millones mensuales, el modelo HA-ARM de `US$170.65` frente a HA-x86 de `US$217.50` representa un **21.5% de reducción estimada** manteniendo la misma intención de alta disponibilidad. Su capacidad ARM no está validada. El escenario cloud básico de menor costo carece de redundancia, por lo que **no es una comparación justa de optimización**.
 
 ### Marco FinOps
 
@@ -132,6 +167,16 @@ El script [fairness.py](actividad9/fairness.py) reconstruye el dataset V2, conse
 - Se propone revisar brechas de igualdad de oportunidad (**TPR máxima − mínima >0.10**).
 - Se informa la muestra disponible y se evita dar por concluida la equidad basándose en solo cuatro máquinas por tipo.
 - Las diferencias por grupo son **fairness técnica**, no fairness en categorías protegidas de personas.
+
+### Tabla 3. Resultados observados de fairness operacional
+
+| Tipo | Máquinas piloto | Ventanas | Recall/TPR | FPR | Precision | IC 95% TPR bootstrap por máquina |
+|---|---:|---:|---:|---:|---:|---|
+| A | 4 | 1639 | 72.5% | 3.01% | 69.6% | [55.0%, 91.7%] |
+| B | 4 | 1625 | 80.1% | 2.59% | 76.7% | [46.8%, 97.9%] |
+| C | 4 | 1632 | 81.9% | 3.29% | 70.7% | [69.7%, 98.3%] |
+
+La brecha máxima de TPR es de **9.41 puntos porcentuales**, mientras que la brecha de FPR es **0.71 puntos**. Los intervalos bootstrap son exploratorios: solo existen cuatro máquinas piloto por tipo y los registros temporales no son independientes. No prueba ausencia de sesgos industriales o demográficos.
 
 [Resultados por grupo (JSON)](actividad9/evidence/fairness_machine_types.json) · [Resumen académico](actividad9/evidence/fairness_summary.md)
 
