@@ -210,6 +210,9 @@ def report():
        txt("México LFPDPPP: https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf"),
        txt("El anexo PDF contiene tablas de 9 escenarios de costo, desempeño y métricas de fairness."),
     ]
+    from .academic_extension import extra_sections
+    s.extend(extra_sections(fairness,costs,bench,ev,P,H,make_table,
+                            OUT/"03_arquitectura_actual_vs_propuesta.png"))
     build_pdf(OUT/"01_reporte_tecnico_actividad9.pdf",s)
 
 def annex():
