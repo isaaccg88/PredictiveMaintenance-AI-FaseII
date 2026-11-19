@@ -1,0 +1,101 @@
+name: Actividad 9 - Escalabilidad FinOps y Governanza
+on:
+  push:
+    branches: [actividad9-escalabilidad-gobernanza]
+    paths:
+      - 'actividad9/**'
+      - '!actividad9/evidence/**'
+      - '!actividad9/entregables/**'
+      - '.github/workflows/actividad9.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: actividad9-deliverables
+  cancel-in-progress: true
+jobs:
+  finops-fairness-scaling:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - name: Recuperar código
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Python reproducible
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: actividad8/requirements.txt
+      - name: Instalar dependencias y generadores de documentos
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r actividad8/requirements.txt
+          python -m pip install reportlab==4.2.5 matplotlib==3.10.1
+      - name: Pruebas unitarias FinOps y fairness
+        run: |
+          pytest -q actividad9/test_activity9.py
+      - name: Recuperar modelo V2 sin alterar su entrenamiento
+        run: python -m actividad8.train_v2
+      - name: Iniciar dos endpoints reales FastAPI en loopback
+        run: |
+          mkdir -p /tmp/a9-state-1 /tmp/a9-state-2
+          ACT8_RUNTIME=/tmp/a9-state-1 LAB_MODE=0 nohup python -m uvicorn actividad8.service:app --host 127.0.0.1 --port 8008 > /tmp/a9-api-1.log 2>&1 &
+          echo "$!" > /tmp/a9-api-1.pid
+          ACT8_RUNTIME=/tmp/a9-state-2 LAB_MODE=0 nohup python -m uvicorn actividad8.service:app --host 127.0.0.1 --port 8009 > /tmp/a9-api-2.log 2>&1 &
+          echo "$!" > /tmp/a9-api-2.pid
+          for port in 8008 8009; do
+            ready=0
+            for i in $(seq 1 70); do
+              if curl -fsS http://127.0.0.1:$port/health > /dev/null; then ready=1; break; fi
+              sleep 2
+            done
+            if [ "$ready" -ne 1 ]; then cat /tmp/a9-api-1.log /tmp/a9-api-2.log; exit 1; fi
+          done
+      - name: Medir throughput, p95, p99 y procesos con uno y dos endpoints
+        run: |
+          export A9_API_PIDS="$(cat /tmp/a9-api-1.pid),$(cat /tmp/a9-api-2.pid)"
+          python -m actividad9.benchmark --samples 60
+      - name: Fairness operacional en 12 máquinas holdout
+        run: python -m actividad9.fairness
+      - name: Modelar tres arquitecturas en tres escenarios de tráfico
+        run: python -m actividad9.finops
+      - name: Generar reporte, anexo, diagramas y ZIP
+        run: |
+          python -m actividad9.entregables
+          python - <<'PY'
+          from pathlib import Path
+          p=Path("actividad9/entregables")
+          files=["01_reporte_tecnico_actividad9.pdf","02_anexo_tecnico_actividad9.pdf",
+                 "03_arquitectura_actual_vs_propuesta.png","03_arquitectura_actual_vs_propuesta.pdf",
+                 "Actividad9_Entregables_Tecmilenio.zip"]
+          for name in files:
+              f=p/name
+              assert f.exists() and f.stat().st_size>5000,(name,f.stat().st_size if f.exists() else "missing")
+              if name.endswith(".pdf"):assert f.read_bytes()[:4]==b"%PDF"
+          import json
+          z=json.loads(Path("actividad9/evidence/fairness_machine_types.json").read_text())
+          assert sorted(z["groups"])==list("ABC")
+          print("ACTIVIDAD9: Entregables verificados")
+          PY
+      - name: Mantener evidencias y entregables accesibles sin expiración CI
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin actividad9-escalabilidad-gobernanza
+          git reset --mixed FETCH_HEAD
+          git add actividad9/evidence/*.json actividad9/evidence/*.csv actividad9/evidence/*.md actividad9/entregables/*
+          if git diff --cached --quiet; then echo 'Sin cambios de evidencia'; exit 0; fi
+          git commit -m 'docs(actividad9): reportes, benchmark, fairness, costos y diagramas verificados [skip ci]'
+          git push origin HEAD:actividad9-escalabilidad-gobernanza
+      - name: Guardar ZIP y evidencias como artefacto descargable
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: actividad9-escalabilidad-finops-gobernanza
+          path: |
+            actividad9/entregables/**
+            actividad9/evidence/**
+          if-no-files-found: warn
+          retention-days: 30
