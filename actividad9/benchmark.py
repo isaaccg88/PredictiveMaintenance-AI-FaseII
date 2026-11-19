@@ -36,8 +36,11 @@ def benchmark(urls,concurrency,requests_per_test):
     wall=time.perf_counter()-t0
     durations=sorted(r[0] for r in results)
     good=sum(r[2] for r in results)
+    timely=sum(r[2] and r[0] <= 500 for r in results)
     return {"concurrency":concurrency,"samples":len(results),"ok_2xx":good,
         "errors":len(results)-good,"availability":good/len(results),
+        "timely_2xx_count":timely, "timely_ratio":timely/len(results),
+        "timely_slo_99_met":timely/len(results)>=.99,
         "p50_ms":round(percentile(durations,.50),2),
         "p95_ms":round(percentile(durations,.95),2),
         "p99_ms":round(percentile(durations,.99),2),
