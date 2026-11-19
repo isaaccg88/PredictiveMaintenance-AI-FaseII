@@ -1,0 +1,10 @@
+scenario,architecture_name,monthly_requests,peak_rps_assumed,replicas_estimated,capacity_calibrated_from_local_benchmark,api_ecs_fargate_usd,dashboard_fargate_usd,alb_usd,db_assumption_usd,cloudwatch_assumption_usd,s3_assumption_usd,egress_assumption_usd,total_usd_month,usd_per_1000_requests
+piloto,cloud_naive,500000,0.76103500761035,1,True,36.04,18.02,22.27,45.0,7.1,0.23,0.04,128.7,0.2574
+piloto,ha_without_rightsizing,500000,0.76103500761035,2,True,72.08,18.02,22.27,95.0,7.1,0.23,0.04,214.74,0.42948
+piloto,proposed_rightsized_arm,500000,0.76103500761035,2,True,28.84,14.42,22.27,95.0,7.1,0.23,0.04,167.89,0.33578
+crecimiento,cloud_naive,10000000,22.831050228310502,1,True,36.04,18.02,22.27,45.0,9.0,0.23,0.9,131.46,0.01315
+crecimiento,ha_without_rightsizing,10000000,22.831050228310502,2,True,72.08,18.02,22.27,95.0,9.0,0.23,0.9,217.5,0.02175
+crecimiento,proposed_rightsized_arm,10000000,22.831050228310502,3,True,43.25,14.42,22.27,95.0,9.0,0.23,0.9,185.06,0.01851
+expansion,cloud_naive,60000000,182.64840182648402,7,True,252.28,18.02,22.27,45.0,19.0,0.23,5.4,362.2,0.00604
+expansion,ha_without_rightsizing,60000000,182.64840182648402,9,True,324.36,18.02,22.27,95.0,19.0,0.23,5.4,484.28,0.00807
+expansion,proposed_rightsized_arm,60000000,182.64840182648402,17,True,245.1,14.42,22.27,95.0,19.0,0.23,5.4,401.41,0.00669

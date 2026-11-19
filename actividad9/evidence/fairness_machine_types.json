@@ -1,0 +1,79 @@
+{
+  "status": "MEASURED_ON_SYNTHETIC_HOLDOUT",
+  "model": "RandomForest V2 72h",
+  "synthetic": true,
+  "threshold": 0.5,
+  "grouping_feature": "machine_type",
+  "groups": {
+    "A": {
+      "n": 1639,
+      "positive": 142,
+      "negative": 1497,
+      "tp": 103,
+      "fp": 45,
+      "fn": 39,
+      "tn": 1452,
+      "precision": 0.6959459459459459,
+      "recall_tpr": 0.7253521126760564,
+      "fpr": 0.03006012024048096,
+      "fnr": 0.2746478873239437,
+      "predicted_positive_rate": 0.09029896278218426,
+      "roc_auc": 0.9634903610036976,
+      "average_precision": 0.7822572985959257,
+      "machines": 4
+    },
+    "B": {
+      "n": 1625,
+      "positive": 156,
+      "negative": 1469,
+      "tp": 125,
+      "fp": 38,
+      "fn": 31,
+      "tn": 1431,
+      "precision": 0.7668711656441718,
+      "recall_tpr": 0.8012820512820513,
+      "fpr": 0.025867937372362152,
+      "fnr": 0.1987179487179487,
+      "predicted_positive_rate": 0.1003076923076923,
+      "roc_auc": 0.9680709011886683,
+      "average_precision": 0.8456500504246004,
+      "machines": 4
+    },
+    "C": {
+      "n": 1632,
+      "positive": 144,
+      "negative": 1488,
+      "tp": 118,
+      "fp": 49,
+      "fn": 26,
+      "tn": 1439,
+      "precision": 0.7065868263473054,
+      "recall_tpr": 0.8194444444444444,
+      "fpr": 0.03293010752688172,
+      "fnr": 0.18055555555555555,
+      "predicted_positive_rate": 0.10232843137254902,
+      "roc_auc": 0.9638310185185184,
+      "average_precision": 0.8253788235115249,
+      "machines": 4
+    }
+  },
+  "gaps": {
+    "equal_opportunity_tpr_gap": 0.094092,
+    "false_positive_rate_gap": 0.007062,
+    "precision_gap": 0.070925
+  },
+  "tpr_floor": 0.7253521126760564,
+  "policy_proposal": {
+    "tpr_gap_review_threshold": 0.1,
+    "minimum_positive_samples_per_group": 30,
+    "gate": "REVIEW_BY_HUMAN_NOT_AUTOMATIC_CERTIFICATION"
+  },
+  "methodology": "Machine-type audit (A/B/C) on 12 held-out machines, 4 machines per type. A technical slice analysis; NOT demographic or legal protected-class fairness.",
+  "caveats": [
+    "No real human personal or protected traits in data.",
+    "Only four pilot machines of each type; within-group observations are temporally correlated.",
+    "Performance gaps may reflect synthetic generator mechanisms, not discrimination.",
+    "Confidence intervals require machine-level bootstrap / external validation before deployment.",
+    "Group gap values are descriptive, not proof of fairness or safety."
+  ]
+}

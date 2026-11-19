@@ -1,0 +1,203 @@
+{
+  "scope": "REAL_LOOPBACK_HTTP_IN_CI_NOT_CLOUD",
+  "requests_per_load_level": 60,
+  "slo_p95_ms_diagnostic": 500,
+  "no_claim_of_vertical_scalability_measurement": true,
+  "notes": [
+    "Both API replicas run on the same shared CI host.",
+    "They share host CPU/network and are not isolated containers.",
+    "Two endpoints simulated by alternating requests, not measured AWS ALB.",
+    "CPU and memory scope = host process, not reserved Fargate tasks.",
+    "Peak and cost projections remain assumptions."
+  ],
+  "single": {
+    "endpoints": 1,
+    "levels": [
+      {
+        "concurrency": 1,
+        "samples": 60,
+        "ok_2xx": 60,
+        "errors": 0,
+        "availability": 1.0,
+        "p50_ms": 28.69,
+        "p95_ms": 45.58,
+        "p99_ms": 48.31,
+        "throughput_rps": 32.853,
+        "elapsed_seconds": 1.826,
+        "status_codes": {
+          "200": 60
+        }
+      },
+      {
+        "concurrency": 4,
+        "samples": 60,
+        "ok_2xx": 60,
+        "errors": 0,
+        "availability": 1.0,
+        "p50_ms": 87.4,
+        "p95_ms": 117.14,
+        "p99_ms": 154.48,
+        "throughput_rps": 45.446,
+        "elapsed_seconds": 1.32,
+        "status_codes": {
+          "200": 60
+        }
+      },
+      {
+        "concurrency": 8,
+        "samples": 60,
+        "ok_2xx": 60,
+        "errors": 0,
+        "availability": 1.0,
+        "p50_ms": 173.0,
+        "p95_ms": 209.27,
+        "p99_ms": 230.5,
+        "throughput_rps": 45.493,
+        "elapsed_seconds": 1.319,
+        "status_codes": {
+          "200": 60
+        }
+      },
+      {
+        "concurrency": 16,
+        "samples": 60,
+        "ok_2xx": 60,
+        "errors": 0,
+        "availability": 1.0,
+        "p50_ms": 354.54,
+        "p95_ms": 976.41,
+        "p99_ms": 1169.04,
+        "throughput_rps": 30.361,
+        "elapsed_seconds": 1.976,
+        "status_codes": {
+          "200": 60
+        }
+      }
+    ],
+    "resources_before": {
+      "processes": [
+        {
+          "pid": 2298,
+          "rss_mb": 269.45,
+          "cpu_time_seconds": 1.71
+        },
+        {
+          "pid": 2299,
+          "rss_mb": 268.91,
+          "cpu_time_seconds": 1.7
+        }
+      ],
+      "scope": "host_process_not_Fargate"
+    },
+    "resources_after": {
+      "processes": [
+        {
+          "pid": 2298,
+          "rss_mb": 280.41,
+          "cpu_time_seconds": 7.68
+        },
+        {
+          "pid": 2299,
+          "rss_mb": 268.91,
+          "cpu_time_seconds": 1.71
+        }
+      ],
+      "scope": "host_process_not_Fargate"
+    }
+  },
+  "dual": {
+    "endpoints": 2,
+    "levels": [
+      {
+        "concurrency": 1,
+        "samples": 60,
+        "ok_2xx": 60,
+        "errors": 0,
+        "availability": 1.0,
+        "p50_ms": 29.65,
+        "p95_ms": 44.99,
+        "p99_ms": 53.44,
+        "throughput_rps": 31.003,
+        "elapsed_seconds": 1.935,
+        "status_codes": {
+          "200": 60
+        }
+      },
+      {
+        "concurrency": 4,
+        "samples": 60,
+        "ok_2xx": 60,
+        "errors": 0,
+        "availability": 1.0,
+        "p50_ms": 60.61,
+        "p95_ms": 99.94,
+        "p99_ms": 108.94,
+        "throughput_rps": 63.46,
+        "elapsed_seconds": 0.945,
+        "status_codes": {
+          "200": 60
+        }
+      },
+      {
+        "concurrency": 8,
+        "samples": 60,
+        "ok_2xx": 60,
+        "errors": 0,
+        "availability": 1.0,
+        "p50_ms": 160.97,
+        "p95_ms": 553.89,
+        "p99_ms": 598.17,
+        "throughput_rps": 44.114,
+        "elapsed_seconds": 1.36,
+        "status_codes": {
+          "200": 60
+        }
+      },
+      {
+        "concurrency": 16,
+        "samples": 60,
+        "ok_2xx": 60,
+        "errors": 0,
+        "availability": 1.0,
+        "p50_ms": 252.08,
+        "p95_ms": 429.5,
+        "p99_ms": 442.4,
+        "throughput_rps": 57.856,
+        "elapsed_seconds": 1.037,
+        "status_codes": {
+          "200": 60
+        }
+      }
+    ],
+    "resources_before": {
+      "processes": [
+        {
+          "pid": 2298,
+          "rss_mb": 280.41,
+          "cpu_time_seconds": 7.68
+        },
+        {
+          "pid": 2299,
+          "rss_mb": 268.91,
+          "cpu_time_seconds": 1.71
+        }
+      ],
+      "scope": "host_process_not_Fargate"
+    },
+    "resources_after": {
+      "processes": [
+        {
+          "pid": 2298,
+          "rss_mb": 280.77,
+          "cpu_time_seconds": 11.86
+        },
+        {
+          "pid": 2299,
+          "rss_mb": 275.68,
+          "cpu_time_seconds": 5.34
+        }
+      ],
+      "scope": "host_process_not_Fargate"
+    }
+  }
+}
