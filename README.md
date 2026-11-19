@@ -1,572 +1,190 @@
-# 🏭 Predictive Maintenance AI · Actividad 8
-### Monitorización proactiva, observabilidad, MLOps y gobernanza operativa
+# 🏭 Predictive Maintenance AI · Actividad 9
+## Rediseño de escalabilidad, FinOps y gobernanza responsable
 
-[![Validación reproducible de la Actividad 8](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad8.yml/badge.svg?branch=actividad8-v2-observabilidad)](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad8.yml)
+[![Actividad 9 — CI](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad9.yml/badge.svg?branch=actividad9-escalabilidad-gobernanza)](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad9.yml)
 
+**Universidad Tecmilenio · Gestión de Proyectos de Inteligencia Artificial · Módulo 3 / Semana 11**
 
-**Universidad Tecmilenio · Gestión de Proyectos de Inteligencia Artificial · Módulo 3 / Semana 10**  
-**Caso académico:** servicio de mantenimiento predictivo, horizonte de falla a 72 horas.  
-**Herramientas:** Python · scikit-learn · MLflow 3.6 · FastAPI · SQLite · Streamlit · Docker · GitHub Actions.  
-**Rama de entrega:** actividad8-v2-observabilidad. [Repositorio de la actividad](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/tree/actividad8-v2-observabilidad) · [Ejecutar auditoría en CI](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad8.yml).
-
-> **Alcance del experimento.** La empresa, las 60 máquinas, los sensores, los eventos y las predicciones son **100% sintéticos**. Los incidentes se inyectan deliberadamente. Las solicitudes HTTP del laboratorio sí se miden contra FastAPI; no hay monitorización industrial 24/7 ni control automático de maquinaria. Las decisiones de mantenimiento y de promoción de modelos requieren supervisión humana.
-
----
+> **Naturaleza del caso:** sistema y datos sintéticos. La arquitectura cloud AWS es una **propuesta simulada**, no un despliegue con cargos reales. Los benchmarks ejecutan FastAPI en el runner Linux de GitHub Actions, no en AWS. Las tarifas verificadas y todos los supuestos se desglosan y versionan.
 
 ## Índice
-
-1. [Resumen ejecutivo y resultados](#1-resumen-ejecutivo-y-resultados)
-2. [Arquitectura de observabilidad y MLOps](#2-arquitectura-de-observabilidad-y-mlops)
-3. [Dataset V2, modelo y validación](#3-dataset-v2-modelo-y-validación)
-4. [Diseño de monitoreo: métricas, logs y trazas](#4-diseño-de-monitoreo-métricas-logs-y-trazas)
-5. [MLflow: experimentos, escenarios y evidencias](#5-mlflow-experimentos-escenarios-y-evidencias)
-6. [SLO, error budget y alertas inteligentes](#6-slo-error-budget-y-alertas-inteligentes)
-7. [Dashboard operativo](#7-dashboard-operativo)
-8. [Incidente 1: degradación de latencia](#8-incidente-1-degradación-de-latencia)
-9. [Incidente 2: detección de data-drift](#9-incidente-2-detección-de-data-drift)
-10. [Runbooks, automatización y gobernanza](#10-runbooks-automatización-y-gobernanza)
-11. [GitHub Actions, pruebas y reproducibilidad](#11-github-actions-pruebas-y-reproducibilidad)
-12. [Conclusiones, limitaciones y futuras mejoras](#12-conclusiones-limitaciones-y-futuras-mejoras)
-13. [Cobertura de los cuatro entregables](#13-cobertura-de-los-cuatro-entregables)
+1. [Resumen ejecutivo](#1-resumen-ejecutivo)
+2. [Arquitectura actual y cuellos de botella](#2-arquitectura-actual-y-cuellos-de-botella)
+3. [Escalabilidad vertical y horizontal](#3-escalabilidad-vertical-y-horizontal)
+4. [Arquitectura AWS propuesta](#4-arquitectura-aws-propuesta)
+5. [Métricas de carga, SLA y recursos](#5-métricas-de-carga-sla-y-recursos)
+6. [Optimización FinOps y costos](#6-optimización-finops-y-costos)
+7. [Auditoría ética, técnica y legal](#7-auditoría-ética-técnica-y-legal)
+8. [Fairness operacional entre tipos de máquina](#8-fairness-operacional-entre-tipos-de-máquina)
+9. [Plan de escalamiento responsable](#9-plan-de-escalamiento-responsable)
+10. [Entregables, reproducibilidad y rúbrica](#10-entregables-reproducibilidad-y-rúbrica)
+11. [Referencias verificables](#11-referencias-verificables)
 
 ---
 
-## 1. Resumen ejecutivo y resultados
+## 1. Resumen ejecutivo
 
-### Problema de negocio
+La [Actividad 8](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/tree/actividad8-v2-observabilidad) implementó un servicio FastAPI para un modelo Random Forest que predice fallas en las próximas **72 horas**, un dashboard Streamlit, SQLite, MLflow y dos incidentes verificables. El piloto sintético tiene precision **72.38%**, recall **78.28%**, ROC-AUC **0.9655** y recall por evento **31/35 (88.57%)**, sobre **12 máquinas no vistas**. Son resultados del **generador V2 sintético**, no rendimiento industrial validado.
 
-Las fallas no planificadas de maquinaria generan paros, correcciones urgentes y pérdida de productividad. Un modelo que predice riesgo de falla a 72 horas puede apoyar decisiones anticipadas, pero **el modelo por sí solo no garantiza continuidad operativa**: también es necesario conocer la disponibilidad de la API, detectar latencia, controlar cambios en sensores, registrar incidentes y verificar si las respuestas funcionaron.
+La Actividad 9 evalúa cómo evolucionar esta arquitectura hacia un servicio con alta disponibilidad y escalado controlado, relacionando latencia/throughput y costo unitario, sin ignorar riesgos de sesgo, transparencia, seguridad y cumplimiento.
 
-### Objetivo de la Actividad 8
+**Decisión estratégica:** diseñar AWS como caso cloud simulado (ECS Fargate, ALB, RDS Multi-AZ, S3, IAM y observabilidad), probar carga HTTP local real, construir un modelo FinOps paramétrico y auditar calidad por subgrupos de máquinas.
 
-Implementar un laboratorio reproducible de observabilidad con métricas, logs y trazas, seguimiento con MLflow, SLO y presupuestos de error, al menos cinco alertas, dos incidentes críticos y runbooks con evidencia antes/durante/después.
+## 2. Arquitectura actual y cuellos de botella
 
-### Resultados demostrados
-
-| Componente | Resultado medido o implementado | Evidencia |
+| Capa | Implementación comprobada | Límite de escala |
 |---|---|---|
-| Modelo V2 | **72.38% precision; 78.28% recall; ROC-AUC 0.9655** en piloto sintético | [evaluación V2](actividad8/results/evaluation_v2.json) |
-| Horizonte y piloto | **72 h**, 12 máquinas excluidas del entrenamiento | [metodología](actividad8/docs/METODOLOGIA.md) |
-| Observabilidad | HTTP medido, eventos JSONL, trazas correlacionadas y registros SQLite | [API](actividad8/service.py) · [traza preservada](actividad8/evidence/ejemplo_traza_real.json) |
-| Seguimiento MLflow | 1 run de entrenamiento con 15 métricas + **6 runs de etapas de incidentes** | [registro de experimentos](actividad8/mlflow_incidents.py) · [auditoría automática](actividad8/mlflow_incident_audit.py) |
-| Alertamiento | **6 reglas**, dos incidentes activados, deduplicación demostrada | [reglas](actividad8/rules.py) · [incidentes](actividad8/evidence/incidents.json) |
-| INC-01 | Latencia p95 **35.9 → 689.2 → 37.2 ms** (límite 500 ms) | [captura](actividad8/evidence/screenshots/INC-01_latencia_antes_durante_despues.png) |
-| INC-02 | PSI **0.071 → 10.361 → 0.056** (límite 0.20) | [captura](actividad8/evidence/screenshots/INC-02_drift_antes_durante_despues.png) |
-| Automatización | Dos runbooks con comprobación de cierre; ejecución en GitHub Actions | [workflow](.github/workflows/actividad8.yml) · [ejecuciones](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad8.yml) |
+| Inferencia | FastAPI + Random Forest en contenedor único | Sin balanceador ni réplicas por AZ |
+| Interfaz | Streamlit en contenedor único | Sin autenticación y redundancia cloud |
+| Datos | SQLite en volumen Docker | Concurrencia/escalado horizontal limitado |
+| Observabilidad | SQL, JSONL, métricas HTTP y trazas correlacionadas | Sin backend centralizado de trazas/alarma persistente |
+| MLOps | MLflow en CI, pruebas de GitHub Actions | Experimentos temporales, sin registro/etapas cloud permanente |
+| Seguridad | Puertos vinculados a loopback de Windows | Requiere IAM, TLS, gestión de secretos, segmentación, gobierno de datos |
 
-**Interpretación:** los resultados del servicio y de los incidentes son medibles y reproducibles en el laboratorio. No prueban desempeño industrial ni una instalación cloud permanente.
+**Escenario real conocido:** Docker local y pruebas del runner; **no** AWS, Azure o GCP ya desplegados.
 
----
+![Diagrama de arquitectura actual vs propuesta](actividad9/entregables/03_arquitectura_actual_vs_propuesta.png)
 
-## 2. Arquitectura de observabilidad y MLOps
+*Figura 1. Arquitectura esquemática generada desde código; la parte AWS es una propuesta de diseño, no infraestructura ejecutada.*
+
+## 3. Escalabilidad vertical y horizontal
+
+**Vertical:** aumentar vCPU y memoria de una misma réplica puede reducir contención, a cambio de mayor costo por tarea y límite de capacidad. En esta actividad **no se considera validado** hasta hacer pruebas con límites de CPU y RAM realmente impuestos.
+
+**Horizontal:** pasar de un endpoint HTTP a dos procesos separados y distribuir solicitudes alternativamente permite evaluar una aproximación inicial del reparto de carga. Pero comparten el mismo runner y no son un balanceador ALB real; por ello los resultados NO prueban disponibilidad multizona o capacidad de ECS.
+
+Antes de desplegar, desacoplar persistencia SQLite hacia RDS/PostgreSQL, externalizar modelos en S3, garantizar idempotencia y aislar procesos de dashboard/inferencia. Definir configuración consistente, sesiones sin estado, healthchecks y límites de autoscaling.
+
+## 4. Arquitectura AWS propuesta
+
+**Referencia AWS us-east-1** por sus tarifas públicas comparables. La elección de región y residencia de datos de una empresa mexicana requeriría revisión legal, latencia y seguridad antes de contratar.
 
 ```mermaid
-flowchart TD
-    A[Generador sintético V2 - 60 máquinas] --> B[Entrenamiento Random Forest - 72 h]
-    B --> C[MLflow - runs, parámetros y métricas]
-    B --> D[Artefactos del modelo + snapshots piloto]
-    D --> E[FastAPI - POST /predict]
-    E --> F[SQLite - predicciones y métricas HTTP]
-    E --> G[JSONL - http.request / model.infer / sqlite.commit]
-    E --> H[Streamlit - dashboard operativo]
-    F --> H
-    I[Laboratorio - incidentes controlados] --> E
-    I --> J[PSI y reglas SLO]
-    J --> K[AlertState - emitir / suprimir / resolver]
-    K --> L[Runbooks - recuperación limitada y verificación]
-    I --> C
-    L --> C
-    M[GitHub Actions - reproducibilidad] --> B
-    M --> I
-    M --> N[Pruebas y artefacto de evidencias]
+flowchart TB
+  U[Usuarios autorizados y supervisores] --> W[WAF + HTTPS / autenticación]
+  W --> ALB[Application Load Balancer]
+  ALB --> AZ1[ECS Fargate API · AZ A]
+  ALB --> AZ2[ECS Fargate API · AZ B]
+  AZ1 --> RDS[(RDS PostgreSQL Multi-AZ)]
+  AZ2 --> RDS
+  AZ1 --> S3[S3 · modelos aprobados y versionados]
+  AZ2 --> S3
+  ALB --> OBS[CloudWatch · latencia, errores, alarmas]
+  RDS --> AUD[Auditoría y retención]
+  S3 --> ML[MLflow / control de versiones]
+  BUD[FinOps · presupuestos y coste por inferencia] --> OBS
+  GOV[Responsible AI · revisión humana] --> ML
 ```
 
-**Componentes y responsabilidad técnica**
+El **despliegue a AWS está propuesto, no ejecutado**. El costo financiero del modelo no debe asumirse suficiente para certificar arquitectura segura o resiliente.
 
-| Componente | Función | Restricción |
-|---|---|---|
-| [Simulador V2](actividad8/simulator.py) | Sensores, fallas y etiquetas futuras | Mecanismos y relaciones artificiales |
-| [Entrenamiento](actividad8/train_v2.py) | Random Forest y evaluación sin ajustar en el piloto | Métricas no generalizables a maquinaria real |
-| [FastAPI](actividad8/service.py) | Inferencia, instrumentación HTTP y trazabilidad | Servicio local de demostración |
-| SQLite / JSONL | Persiste inferencias, tiempos y eventos correlacionados | No sustituye un sistema centralizado de telemetría |
-| [MLflow](actividad8/mlflow_incidents.py) | Registra entrenamiento y escenarios del laboratorio | Tracking store efímero dentro de CI |
-| [Streamlit](actividad8/dashboard.py) | Panel interactivo de resultados y SLO | Combina métricas locales e histórico del laboratorio, identificados por separado |
-| [GitHub Actions](.github/workflows/actividad8.yml) | Entrena, comprueba, inyecta incidentes y conserva evidencias | El runner se destruye al terminar |
+## 5. Métricas de carga, SLA y recursos
 
-Las «trazas» implementadas son **eventos correlacionados por trace_id**; no afirmamos utilizar tracing distribuido OpenTelemetry. Toda automatización de corrección se limita al laboratorio.
+El [benchmark reproducible](actividad9/benchmark.py) ejecuta POST /predict con concurrencia 1/4/8/16 frente a una y dos instancias de la API, registrando throughput, p50/p95/p99, porcentaje de éxito, duración y huella de procesos en el runner.
 
----
+**Objetivos propuestos para un piloto cloud:** disponibilidad ≥99%, respuestas oportunas 2xx ≤500 ms en ≥99% de peticiones y revisión de p95 ≤500 ms. Son **metas**, no SLA contractual observado en AWS.
 
-## 3. Dataset V2, modelo y validación
+- [Resultado crudo de benchmarking](actividad9/evidence/load_benchmark.json)
+- [Script de carga](actividad9/benchmark.py)
+- [Evidencia de la ejecución de CI](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad9.yml)
 
-El generador V2 produce **129,600 observaciones sintéticas** de 60 máquinas, con lecturas cada 6 horas. Se simulan **853 eventos de falla** en la ejecución de referencia, incluyendo desgaste, deterioro térmico, vibración y fallas menos previsibles. Se agregan señales precursoras imperfectas y falsas anomalías.
+La capacidad disponible por tarea no debe extrapolarse directamente del runner a instancias ARM de Fargate; el informe conserva esta limitación. La rama propuesta incluye comparaciones de respuesta de una vs dos instancias, pero **no prueba escalado vertical de contenedores**.
 
-- **Etiqueta:** falla entre las próximas 6 y 72 horas; se censuran las últimas 12 observaciones sin horizonte futuro completo.
-- **Variables:** temperatura, vibración, presión, RPM, torque, índice de desgaste, carga, horas desde servicio, tendencias y tipo de equipo.
-- **Separación:** 48 máquinas para ajuste y pruebas temporales; PM-049 a PM-060 se reservan como piloto no visto durante el ajuste.
-- **Modelo:** Random Forest con 130 árboles, profundidad máxima 12 y pesos balanceados. Imputación y codificación ajustadas exclusivamente sobre entrenamiento.
-- **Umbral:** 0.50, seleccionado en validación bajo criterio F2 y requisito mínimo de precision; no se optimizó contra el conjunto piloto.
+## 6. Optimización FinOps y costos
 
-### Evaluación comparada de la V2
+El [modelo económico reproducible](actividad9/finops.py) estudia tres arquitecturas y tres volúmenes de solicitudes; genera [costos comparados en CSV](actividad9/evidence/cost_comparison.csv) y un [JSON con tarifas, supuestos y fórmulas](actividad9/evidence/finops_model.json).
 
-| Métrica | Validación | Prueba temporal | Piloto no visto |
-|---|---:|---:|---:|
-| Precision | 68.82% | 70.07% | **72.38%** |
-| Recall | 84.25% | 83.03% | **78.28%** |
-| F1 | 0.7576 | 0.7600 | **0.7522** |
-| ROC-AUC | 0.9760 | 0.9708 | **0.9655** |
-| Average Precision | 0.8609 | 0.8530 | **0.8144** |
-
-**Matriz de confusión del piloto (4,896 ventanas):** 346 verdaderos positivos, 132 falsos positivos, 96 falsos negativos y 4,322 verdaderos negativos. El recall por evento fue **31 de 35 fallas (88.57%)**. Hay aproximadamente **0.75 falsas ventanas por máquina-semana**; ese valor no equivale a episodios de alerta ya deduplicados.
-
-**Advertencia de comparabilidad:** V1 obtuvo 16.36% de precision y 0.8621 ROC-AUC sobre **otro generador sintético**. La aparente mejora de V2 se debe en parte a que el escenario nuevo contiene relaciones generativas más predictivas. No constituye prueba controlada de que el algoritmo haya mejorado sobre un mismo conjunto. Véase [metodología completa](actividad8/docs/METODOLOGIA.md).
-
----
-
-## 4. Diseño de monitoreo: métricas, logs y trazas
-
-### Diccionario de indicadores
-
-| Indicador | Cálculo / origen | Objetivo de decisión |
-|---|---|---|
-| Disponibilidad HTTP | 1 − (solicitudes HTTP 5xx / solicitudes elegibles) | Detectar servicio no disponible; SLO ≥99% |
-| Oportunidad | Respuestas 2xx en ≤500 ms / solicitudes elegibles | Detectar degradación percibida por usuario; SLO ≥99% |
-| Latencia p95 | Percentil 95 de duración medida de POST /predict | Diagnóstico de cola larga y validación de recuperación |
-| Errores 5xx | Conteo y tasa sobre ventana de peticiones | Priorizar incidentes P1 |
-| Uso de CPU | Muestreo con psutil en laboratorio | Regla de capacidad; **CPU del runner**, no del contenedor |
-| Calidad supervisada | Precision, recall, F1, ROC-AUC, AP | Evaluación **offline** cuando existen etiquetas maduras |
-| Drift | Population Stability Index (PSI) de temperatura | Detectar lotes con distribución alterada |
-| Alertas deduplicadas | EMITTED / SUPPRESSED_DUPLICATE / RESOLVED | Minimizar ruido y evitar escalaciones redundantes |
-
-### Línea base (baseline) de monitoreo: referencia previa a los incidentes
-
-**Esta es la tabla de referencia para interpretar todo el laboratorio.** Se estableció una ventana saludable **antes de inyectar cualquier falla**. Posteriormente se aplicó un incidente controlado, se evaluaron los SLI contra los objetivos SLO y se ejecutó el runbook correspondiente. Finalmente se midió una nueva ventana para comprobar recuperación.
-
-**Origen trazable:** [`actividad8/evidence/incidents.json`](actividad8/evidence/incidents.json) para las mediciones HTTP, los estados de alerta y el PSI; [`actividad8/results/evaluation_v2.json`](actividad8/results/evaluation_v2.json) para la calidad del modelo. Los números de esta tabla corresponden a **una corrida de referencia del 14 de noviembre de 2026**, no necesariamente a cada ejecución posterior de GitHub Actions. La aplicación conserva el registro histórico del laboratorio separado de las mediciones vivas de la API local.
-
-#### Tabla 1. Baseline de métricas operativas, umbrales y comparación con incidentes
-
-| Indicador / SLI | Baseline observado (antes) | Objetivo o condición de alerta | Durante la falla | Después del runbook | Interpretación |
-|---|---:|---|---:|---:|---|
-| Disponibilidad HTTP | **100%** | SLO ≥99%; alerta P1 si <99% | 100% | 100% | La degradación simulada no produce HTTP 5xx; el servicio permanece disponible |
-| Errores HTTP 5xx | **0 de 12 (0%)** | Alerta P1 si >1% de solicitudes elegibles | 0 de 12 (0%) | 0 de 12 (0%) | La falla afecta oportunidad, no disponibilidad |
-| Oportunidad HTTP (≤500 ms, respuesta 2xx) | **12/12 (100%)** | SLO ≥99%; alerta P2 si <99% | 0/12 (0%) | 12/12 (100%) | **INC-01:** incumplimiento y recuperación medidos |
-| Latencia p95 HTTP | **35.8922 ms** | Límite diagnóstico 500 ms; la alerta operativa usa el SLI de oportunidad | 689.2183 ms | 37.2224 ms | **INC-01:** efecto y retiro de la demora experimental |
-| Consumo del error budget de oportunidad | **0%** | 0.12 errores equivalentes permitidos en 12 solicitudes (SLO 99%) | 10,000% | 0% | El incidente agota más de 100 veces el presupuesto de **su ventana**; el historial no se borra al recuperar |
-| PSI de temperatura | **0.0711** | Alerta P2 si PSI >0.20 con al menos 100 observaciones | 10.3608 | 0.0565 | **INC-02:** cambio pronunciado de distribución y restauración del lote |
-| CPU del servicio | **No establecido** | Regla P2 si CPU >85% | No simulado | No evaluado | Se prueba la regla; el muestreo existente corresponde al **runner**, no al contenedor de FastAPI |
-
-**Condiciones de medición:** el incidente HTTP se midió con ventanas de **12 solicitudes POST /predict** contra FastAPI real del laboratorio; el runbook verificó dos ventanas saludables consecutivas. Para PSI se comparó una distribución de referencia de sensores sintéticos contra lotes de **450 observaciones**. El laboratorio incluye calentamiento y reintentos registrados si la primera ventana no es estable. **No se considera sana una ventana sin muestras suficientes.**
-
-#### Tabla 2. Baseline de calidad del modelo V2 (offline, sin etiquetas operativas en vivo)
-
-| Métrica de calidad | Baseline del piloto V2 | Umbral de monitoreo definido | Estado de su evaluación |
-|---|---:|---|---|
-| Precision | **72.38%** | Sin umbral automático configurado | Referencia de calidad offline |
-| Recall por ventana | **78.28%** | Sin umbral automático configurado | Referencia de calidad offline |
-| Recall por evento | **88.57% (31/35)** | Sin umbral automático configurado | Referencia de capacidad de anticipación |
-| F1-score | **0.7522** | Sin umbral automático configurado | Referencia de equilibrio precision-recall |
-| ROC-AUC | **0.9655** | Alerta P2 si **<0.75**, con etiquetas maduras | Regla implementada; **no** se provocó degradación supervisada |
-| Average Precision | **0.8144** | Sin umbral automático configurado | Referencia de calidad offline |
-
-Los resultados del piloto V2 proceden de **4,896 ventanas y 12 máquinas sintéticas excluidas del entrenamiento**. No deben confundirse con el baseline operativo HTTP, ni compararse directamente con Fase II porque se utilizó otro generador. El PSI y la latencia **sí tuvieron incidentes provocados**; la calidad supervisada del modelo **no** se degradó experimentalmente en esta actividad.
-
-#### ¿Cómo transforma el sistema el baseline en alertas y decisiones?
-
-```mermaid
-flowchart LR
-    A[Baseline normal medido] --> B[Monitoreo de solicitudes y sensores]
-    B --> C{¿SLI o PSI supera el umbral?}
-    C -->|No| D[Continuar y registrar]
-    C -->|Sí| E[Alerta P1/P2 y deduplicación]
-    E --> F[Runbook del incidente]
-    F --> G[Nueva medición y comparación]
-    G --> H{¿Recuperó el nivel aceptable?}
-    H -->|Sí| I[RESOLVED]
-    H -->|No| J[ESCALATE]
-```
-
-En la [Figura 1 de latencia](actividad8/evidence/screenshots/INC-01_latencia_antes_durante_despues.png) y la [Figura 2 de drift](actividad8/evidence/screenshots/INC-02_drift_antes_durante_despues.png) se observan precisamente las tres fases medidas. [MLflow](actividad8/evidence/screenshots/MLflow_experimento_runs.png) registra un run `baseline`, uno `degraded` y uno `recovered` para cada incidente. **Una recuperación en una ventana nueva no elimina retrospectivamente la violación registrada durante el incidente.**
-
-### Logs estructurados de una solicitud auténtica del laboratorio
-
-En la ejecución reproducible [#43650203109](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/43650203109) se registraron eventos correlacionados por el mismo identificador:
-
-```text
-trace_id = 856a1598-2420-40a1-8b9a-070c179cbc8a
-model.infer   duration_ms = 26.576
-sqlite.commit record_id   = 1
-http.request  status      = 200, duration_ms = 28.846
-```
-
-Los valores provienen de [una muestra JSON preservada y trazable](actividad8/evidence/ejemplo_traza_real.json). La diferencia entre el tiempo de inferencia y el HTTP incluye la instrumentación, la serialización y el trabajo adicional de la solicitud. No es un ejemplo inventado.
-
-**Mecanismo de trazabilidad:** FastAPI genera un UUID por solicitud; ese mismo trace_id se incluye en los registros de inferencia, persistencia y respuesta HTTP, además de guardarse en SQLite. Permite investigar una predicción concreta desde el dashboard hasta sus operaciones internas. Véanse [service.py](actividad8/service.py) y [GET /history](actividad8/service.py).
-
-### Qué muestran los dashboards
-
-El panel reúne métricas de calidad offline con el estado vivo de la API local. La separación es explícita: la latencia HTTP procede de solicitudes reales al contenedor; las cifras de incidentes proceden del laboratorio de GitHub Actions o de una corrida previa registrada en JSON.
-
----
-
-## 5. MLflow: experimentos, escenarios y evidencias
-
-### Seguimiento de modelos y experimentos
-
-Se utiliza **MLflow 3.6** como herramienta de seguimiento real. El experimento se llama **PredictiveMaintenanceAI_Actividad8_V2**. El entrenamiento registra 4 parámetros (semilla, horizonte, tamaño del piloto y umbral), **15 métricas** (cinco para cada uno de tres subconjuntos), los archivos de evaluación/metadata y el **modelo Random Forest serializado** como artefacto de MLflow.
-
-Además, para acercar la demostración al ejemplo del profesor, se incorporó [mlflow_incidents.py](actividad8/mlflow_incidents.py), que registra **seis runs independientes de los incidentes**:
-
-| Run MLflow | Qué registra | Evidencia original |
-|---|---|---|
-| INC-01_baseline | Latencia, disponibilidad y oportunidad antes de la falla | [incidents.json](actividad8/evidence/incidents.json) |
-| INC-01_degraded | Tiempo HTTP y consumo del presupuesto durante la falla | [incidents.json](actividad8/evidence/incidents.json) |
-| INC-01_recovered | Nuevas peticiones y recuperación verificada | [incidents.json](actividad8/evidence/incidents.json) |
-| INC-02_baseline | PSI de sensores normales | [incidents.json](actividad8/evidence/incidents.json) |
-| INC-02_degraded | PSI del lote de temperatura alterado | [incidents.json](actividad8/evidence/incidents.json) |
-| INC-02_recovered | PSI tras retirar el lote sintético irregular | [incidents.json](actividad8/evidence/incidents.json) |
-
-**No son seis reentrenamientos:** cada run registra una fase medida de los dos escenarios, asociada al mismo experimento y al run de entrenamiento. [mlflow_incident_audit.py](actividad8/mlflow_incident_audit.py) lee los valores del tracking store con MlflowClient y comprueba que coincidan con incidents.json. La verificación genera [artefactos descargables de CI](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad8.yml). No se inventan valores para completar capturas.
-
-### Métricas de MLflow verificadas del modelo
-
-| Subconjunto | Precision | Recall | ROC-AUC |
-|---|---:|---:|---:|
-| Validación | 0.688223 | 0.842500 | 0.975980 |
-| Prueba temporal | 0.700719 | 0.830292 | 0.970843 |
-| Piloto | 0.723849 | 0.782805 | 0.965536 |
-
-### Capturas auténticas de la interfaz MLflow
-
-Las siguientes imágenes se capturaron con **Chromium sobre MLflow 3.6.0 en GitHub Actions**, leyendo los runs realmente registrados por el laboratorio. No son recreaciones ni gráficas dibujadas para aparentar una interfaz.
-
-![Figura MLflow 1: listado de un entrenamiento V2 y seis etapas de incidentes](actividad8/evidence/screenshots/MLflow_experimento_runs.png)
-
-**Figura 3 — Listado de experimentos:** se observan siete runs: uno de entrenamiento y seis correspondientes a antes/durante/después de INC-01 e INC-02. Cada etapa tiene su propia identidad de ejecución.
-
-![Figura MLflow 2: entrenamiento V2 y métricas originales](actividad8/evidence/screenshots/MLflow_modelo_v2_metricas.png)
-
-**Figura 4 — Run del modelo V2:** muestra las 15 métricas y los parámetros del experimento; la precisión del piloto (0.723849) coincide con el reporte JSON evaluado automáticamente.
-
-![Figura MLflow 3: incidente de latencia degradada](actividad8/evidence/screenshots/MLflow_incidente_latencia.png)
-
-**Figura 5 — Run INC-01_degraded:** expone latencia p95 medida, SLO, presupuesto y etiquetas de incidente, runbook y naturaleza sintética. Es una evidencia adicional al gráfico antes/durante/después mostrado en la sección 8.
-
-![Figura MLflow 4: incidente de data drift con PSI de temperatura](actividad8/evidence/screenshots/MLflow_incidente_drift.png)
-
-**Figura 6 — Run INC-02_degraded:** MLflow confirma PSI = 10.3608 con 450 observaciones; la etiqueta de la fase marca VIOLATION y registra RB-DRIFT. El resultado de recuperación se demuestra por separado mediante nuevas mediciones del laboratorio.
-
-Para inspeccionar las imágenes a tamaño completo: [runs](actividad8/evidence/screenshots/MLflow_experimento_runs.png) · [modelo V2](actividad8/evidence/screenshots/MLflow_modelo_v2_metricas.png) · [latencia](actividad8/evidence/screenshots/MLflow_incidente_latencia.png) · [drift](actividad8/evidence/screenshots/MLflow_incidente_drift.png).
-
-La captura se realiza mediante el [script reproducible](actividad8/mlflow_capture.py) y el [workflow independiente](.github/workflows/actividad8-mlflow-screenshots.yml). Ver también [evidencia técnica MLflow](actividad8/docs/MLFLOW_EVIDENCIA.md).
-
-**Alcance:** MLflow es un tracking store del laboratorio y no una plataforma de monitoreo permanente. La calidad predictiva de un modelo en producción solo podrá calcularse cuando se conozcan las fallas reales y maduren las etiquetas.
-
----
-
-## 6. SLO, error budget y alertas inteligentes
-
-### SLI, SLO y presupuestos de error
-
-La [Tabla 1 de baseline](#tabla-1-baseline-de-métricas-operativas-umbrales-y-comparación-con-incidentes) presenta los valores medidos antes, durante y después, frente a los cuales se evaluaron los incidentes. Los SLO son **objetivos configurados**, no cifras medidas de comportamiento normal. 
-
-Se definen objetivos de demostración de 99% de disponibilidad y 99% de oportunidad (respuesta satisfactoria en ≤500 ms). Para una ventana de 12 solicitudes, el presupuesto de errores es:
-
-```text
-Presupuesto = N * (1 - SLO)
-            = 12 * (1 - 0.99)
-            = 0.12 solicitudes equivalentes
-```
-
-Por tanto, **una sola solicitud no oportuna supera el presupuesto completo** en una ventana tan pequeña. Esto demuestra el principio didáctico de error budget, no un presupuesto industrial con ventana mensual o burn-rate calibrado.
-
-### Seis reglas ejecutables
-
-| Regla | Severidad | Condición | Runbook |
+| Arquitectura | Escalado | Base de datos | Alcance |
 |---|---|---|---|
-| Disponibilidad | **P1** | Disponible / elegible <99% | RB-AVAIL |
-| Errores 5xx | **P1** | Errores HTTP 5xx >1% | RB-AVAIL |
-| Latencia | P2 | Solicitudes oportunas / elegibles <99% | RB-LATENCY |
-| CPU | P2 | Medición >85% | RB-CAPACITY |
-| Data drift | P2 | PSI >0.20 con muestra ≥100 | RB-DRIFT |
-| Calidad supervisada | P2 | AUC <0.75 con etiquetas maduras | RB-QUALITY |
+| cloud_naive | 1 API x86, sin redundancia | Single-AZ supuesto | Referencia de migración mínima, no HA |
+| ha_without_rightsizing | 2+ API x86, redundancia | Multi-AZ supuesto | Referencia alta disponibilidad |
+| proposed_rightsized_arm | 2+ API ARM dimensionadas, redundancia | Multi-AZ supuesto | Optimización de tarifas por validar en ARM |
 
-**Prioridad:** P1 indica afectación crítica de disponibilidad o errores del servicio. P2 corresponde a degradación de tiempos, capacidad, distribución o calidad. Los seis predicados se verifican con pruebas, pero **solo latencia y drift se provocan como incidentes completos** en la actividad.
+**Principio esencial:** comparar ahorro entre opciones con **igual resiliencia**. No sería correcto proclamar ahorro comparando arquitectura sin redundancia frente a arquitectura con HA. El costo mensual se descompone por tareas Fargate, ALB, RDS, CloudWatch, almacenamiento S3 y egreso.
 
-### Fragmento de código de la instrumentación y cálculo de SLI
+**Tarifas públicas de referencia en us-east-1:** Linux/x86 Fargate USD **0.04048/vCPU-h** y **0.004445/GB-h**; ARM USD **0.03238/vCPU-h** y **0.00356/GB-h**; ALB USD **0.0225/h** + **0.008/LCU-h** según dimensiones de carga. El supuesto de una LCU/h es aproximado.
 
-En [service.py](actividad8/service.py), el middleware registra duración, identificador de traza y status HTTP de cada solicitud. La lógica se ejecuta alrededor del endpoint, no calcula un número artificial:
+**Importes NO verificados como cotización:** RDS Single-AZ USD 45/mes, Multi-AZ USD 95/mes, logs USD 0.50/GB, egreso USD 0.09/GB, almacenamiento USD 0.023/GB-mes. Son variables de simulación. **NAT, WAF, backups, soporte y costo humano se excluyen** de totales; deberán presupuestarse antes de aprobar el despliegue. No proyectar ROI financiero con estos importes sin validación completa.
 
-```python
-started = time.perf_counter()
-trace_id = str(uuid.uuid4())
-request.state.trace_id = trace_id
-response = await call_next(request)
-duration = round((time.perf_counter() - started) * 1000, 3)
-response.headers["X-Trace-Id"] = trace_id
-```
+### Marco FinOps
 
-En [rules.py](actividad8/rules.py) la definición del SLO depende de solicitudes oportunas, no únicamente de la media de latencia:
+Aplicamos las fases [Inform → Optimize → Operate](https://www.finops.org/framework/phases/): asignación y trazabilidad de costos, dimensionamiento adecuado/arquitecturas equivalentes, presupuesto mensual, alertas de gasto y evaluación periódica de USD por 1,000 inferencias válidas manteniendo SLO.
 
-```python
-timely = sum(200 <= s["status"] < 300 and
-             s["duration_ms"] <= SLOS["max_latency_ms"] for s in samples)
-latency_bad = len(samples) - timely
-permitted = len(samples) * (1 - SLOS["timely"])
-latency_breached = latency_bad > permitted
-```
+## 7. Auditoría ética, técnica y legal
 
-**Interpretación:** si hay 12 solicitudes y una supera los 500 ms, el indicador de oportunidad cae a 91.67%, incumpliendo el objetivo del 99%; la alerta no se justifica por una cifra aislada de p95, sino por el SLI medido en una ventana definida.
+| Dimensión | Riesgo | Control propuesto | Evidencia |
+|---|---|---|---|
+| Ética | Falsas alertas generan mantenimiento innecesario | Supervisión humana y medición de precisión/recall | Matriz de confusión y análisis por máquinas |
+| Fairness operacional | Recall y falsa alarma diferentes en A/B/C | TPR/FPR por tipo, revisión de brechas | [fairness por tipo](actividad9/evidence/fairness_machine_types.json) |
+| Seguridad | Trazas y datos accesibles sin permisos mínimos | IAM, autenticación, TLS, KMS, mínimos privilegios | Propuesta de arquitectura |
+| MLOps | Actualizar un modelo sin controlar degradación | MLflow, registro aprobado, canary y rollback supervisado | A8 GitHub Actions |
+| Operación | Caída de AZ, escalado insuficiente | Dos AZ, ALB, healthchecks, recuperación probada | Propuesta (no probada en AWS) |
+| Legal (condicional) | Uso futuro de nombres, turnos o información de trabajadores | Minimización, aviso de privacidad, retención y evaluación jurídica | Matriz normativa |
 
-### Control de ruido de alertas
+**NIST AI RMF 1.0:** GOVERN, MAP, MEASURE y MANAGE ofrecen una estructura de gobierno, análisis de riesgos, evaluación y controles. **ISO/IEC 42001:2023** es referencia de sistema de gestión de IA, no certificación conseguida.
 
-El motor [AlertState](actividad8/rules.py) muestra la transición:
+**México:** la Ley Federal de Protección de Datos Personales en Posesión de los Particulares, publicada en marzo de 2025 y reformada en noviembre de 2025, debe evaluarse si el caso evoluciona a uso de datos personales. **En el piloto sintético actual no se procesan datos personales de operadores**. La revisión legal es orientativa, no dictamen jurídico de conformidad.
 
-```text
-DETECTADA → EMITTED
-REPETIDA  → SUPPRESSED_DUPLICATE
-RECUPERADA → RESOLVED
-```
+## 8. Fairness operacional entre tipos de máquina
 
-El resultado del laboratorio de referencia fue **2 alertas emitidas, 1 duplicada suprimida y 2 resoluciones**. Esto evita multiplicar notificaciones de una misma falla mientras permanece activa. No existe aún un motor de alertas centralizado o un equipo on-call real.
+El script [fairness.py](actividad9/fairness.py) reconstruye el dataset V2, conserva las **12 máquinas piloto excluidas del entrenamiento** y desglosa precision, recall/TPR, FPR, ROC-AUC y soporte entre los tipos A/B/C.
 
----
+- Se propone revisar brechas de igualdad de oportunidad (**TPR máxima − mínima >0.10**).
+- Se informa la muestra disponible y se evita dar por concluida la equidad basándose en solo cuatro máquinas por tipo.
+- Las diferencias por grupo son **fairness técnica**, no fairness en categorías protegidas de personas.
 
-## 7. Dashboard operativo
+[Resultados por grupo (JSON)](actividad9/evidence/fairness_machine_types.json) · [Resumen académico](actividad9/evidence/fairness_summary.md)
 
-El dashboard de Streamlit se ejecuta en **http://localhost:8510** y tiene cinco pestañas:
+## 9. Plan de escalamiento responsable
 
-| Vista | Contenido demostrable | Cómo interpretarla |
+| Fase | Control y responsable | Condición para avanzar |
 |---|---|---|
-| Resumen | Precision, recall, ROC-AUC, estado de FastAPI y botón de predicción de 72 h | Combina calidad **offline** con mediciones locales identificadas |
-| Monitoreo HTTP | Serie temporal de duraciones, status 200/5xx y trace_id | Valores vivos del contenedor al enviar POST /predict |
-| Alertas y SLO | Seis reglas, severidades, presupuestos e historial de alertas | Historial del laboratorio; no monitoreo 24/7 |
-| Incidentes y runbooks | Comparaciones Antes → Durante → Después, umbrales y comprobaciones | Dos simulaciones sintéticas verificadas |
-| Evidencia y trazabilidad | Estado de runbooks, fechas y enlaces a CI | Permite localizar código y ejecuciones |
+| 0. Auditoría del piloto | ML Lead / SRE: baseline, costo por inferencia y gaps A/B/C | Evidencia reproducible |
+| 1. Seguridad | Security/Legal: inventario, IAM, cifrado, retención | Riesgos críticos mitigados |
+| 2. Cloud staging | SRE/FinOps: entorno de pruebas dos AZ y presupuesto aprobado | SLA y recuperación demostrados realmente |
+| 3. Escalado gradual | Operaciones: autoscaling, canary y rollback supervisado | p95, éxito, costo y gobernanza aprobados |
+| 4. Operación | FinOps semanal, ML trimestral, incidentes y auditorías | SLA estable, métricas accesibles, sin sesgos inadmisibles |
 
-**Prueba local registrada:** en la computadora de demostración se ejecutaron dos predicciones a 72 horas mediante Streamlit: PM-049 con riesgo de 45.7% (MEDIO), PM-050 con 0.0% (BAJO). Se comprobaron cinco registros en SQLite y una latencia p95 local aproximada de 139.8 ms. Son observaciones del piloto local, no las mismas cifras del laboratorio de GitHub Actions.
+No se habilitará mantenimiento físico automático; las decisiones siguen siendo humanas. El análisis de sostenibilidad incluye menor consumo de recursos por solicitud y visibilidad de costo, pero no inventa emisiones de CO2 sin métricas de proveedor.
 
-### Capturas verificadas de las vistas de Streamlit
+## 10. Entregables, reproducibilidad y rúbrica
 
-Todas las imágenes siguientes fueron obtenidas **navegando realmente con Chromium sobre Streamlit y FastAPI** durante una ejecución reproducible de GitHub Actions. Son diferentes de las capturas locales del equipo Windows y no corresponden a una interfaz recreada.
+La plataforma solicita **un ZIP** con **(1) reporte técnico Word/PDF, (2) anexo técnico XLS/PDF y (3) diagrama de arquitectura imagen/PDF**. No asumimos que la autorización verbal de entrega GitHub de la Actividad 8 sustituya automáticamente el requisito escrito de la Actividad 9.
 
-![Dashboard Resumen: calidad ML offline, estado API y piloto de 12 máquinas](actividad8/evidence/screenshots/Dashboard_resumen.png)
+El [workflow Actividad 9](.github/workflows/actividad9.yml) construye y verifica automáticamente, y publica un paquete ZIP descargable como artefacto de GitHub Actions:
 
-**Figura 7 — Resumen:** expone cuatro métricas offline, conexión de API y selector de máquinas. El p95 visible de la corrida CI incluye peticiones con retrasos inyectados por el laboratorio; **no representa la latencia sana ni sustituye el resultado local de 139.8 ms**.
+| Criterio (25 pts) | Evidencia principal |
+|---|---|
+| Análisis y rediseño escalabilidad | Diagrama fuente y PNG/PDF, benchmarks 1 y 2 endpoints, diseño AWS |
+| Optimización FinOps | Modelo tarifario, 9 escenarios, costo unitario, supuestos y SLA |
+| Gobernanza ética/legal | Auditoría NIST/ISO/LFPDPPP y fairness A/B/C |
+| Plan responsable | Hoja de ruta, responsables, puertas de aprobación y riesgos |
 
-![Dashboard Monitoreo HTTP: peticiones, duración, disponibilidad y oportunidad](actividad8/evidence/screenshots/Dashboard_monitoreo_http.png)
+**Archivos esperados al terminar el workflow:** [reporte PDF](actividad9/entregables/01_reporte_tecnico_actividad9.pdf), [anexo PDF](actividad9/entregables/02_anexo_tecnico_actividad9.pdf), [diagrama PNG](actividad9/entregables/03_arquitectura_actual_vs_propuesta.png) y [ZIP de entrega](actividad9/entregables/Actividad9_Entregables_Tecmilenio.zip).
 
-**Figura 8 — Monitoreo HTTP:** refleja la ventana acumulada del laboratorio, con 51 peticiones, 100% de disponibilidad y 76.5% de oportunidad. **Es esperado que incumpla el SLO de oportunidad**, ya que en esa corrida se provocó una degradación controlada; muestra el vínculo entre la anomalía y el consumo del presupuesto de error.
+### Reproducibilidad
 
-![Dashboard Alertas y SLO: seis reglas y eventos deduplicados](actividad8/evidence/screenshots/Dashboard_alertas_slo.png)
-
-**Figura 9 — Alertas y SLO:** seis condiciones documentadas con severidad y runbook; historial de dos alertas emitidas, una repetición suprimida y dos resoluciones. Los estados de la tabla son históricos del laboratorio, no avisos activos 24/7.
-
-**Otras vistas verificadas:** [Incidentes y runbooks](actividad8/evidence/screenshots/Dashboard_incidentes_runbooks.png) · [Evidencia y trazabilidad](actividad8/evidence/screenshots/Dashboard_trazabilidad.png). Las imágenes son permanentes en el repositorio y se producen mediante el [workflow de capturas](.github/workflows/actividad8-mlflow-screenshots.yml).
-
----
-
-## 8. Incidente 1: degradación de latencia
-
-### Objetivo, hipótesis y condición de alerta
-
-**INC-01:** demostrar que una API que antes respondía oportunamente incumple el objetivo de 500 ms al introducir una demora controlada, y que el runbook solo registra resolución después de enviar nuevas solicitudes y comprobar dos ventanas saludables consecutivas.
-
-**Procedimiento:** se consulta /health, se hace calentamiento de la API y se mide una ventana normal; luego se agrega una demora de 650 ms únicamente con LAB_MODE y token local. Las solicitudes se realizan a FastAPI, no a un valor fijo de latencia. La inyección se retira enviando peticiones posteriores sin encabezado de falla.
-
-### Medición antes, durante y después
-
-| Etapa | Latencia p95 | Umbral | Evaluación |
-|---|---:|---:|---|
-| Antes | **35.9 ms** | ≤500 ms | Correcto |
-| Durante | **689.2 ms** | ≤500 ms | Violación del SLO |
-| Después | **37.2 ms** | ≤500 ms | Recuperación comprobada |
-
-![Evidencia real Streamlit INC-01, latencia HTTP de tres etapas](actividad8/evidence/screenshots/INC-01_latencia_antes_durante_despues.png)
-
-**Figura 1.** La línea discontinua representa el límite de 500 ms. El escenario supera el umbral y después regresa a valores normales. Los tiempos exactos pueden variar en otros runners, porque dependen de peticiones HTTP reales.
-
-### Runbook RB-LATENCY
-
-1. Confirmar /health y el incumplimiento de disponibilidad u oportunidad.
-2. Identificar por trace_id la solicitud y su tiempo medido.
-3. Emitir alerta P2 y suprimir el duplicado durante el mismo incidente.
-4. Retirar **solo la inyección experimental**, sin fingir reinicio ni escalado real.
-5. Enviar dos ventanas de solicitudes sanas consecutivas; si alguna falla, continuar la verificación hasta el límite definido.
-6. Declarar **RESOLVED** únicamente con comprobaciones verdaderas. De lo contrario, **ESCALATE** y CI falla.
-
-**Resultado:** en el registro de referencia, RB-LATENCY terminó en RESOLVED con recuperación verificada. Véanse [evidencias JSON](actividad8/evidence/incidents.json), [código del laboratorio](actividad8/laboratory.py) y [runbooks](actividad8/docs/RUNBOOKS.md).
-
----
-
-## 9. Incidente 2: detección de data-drift
-
-### Problema y técnica estadística
-
-**INC-02:** comprobar que un lote de sensores con distribución alterada es detectado sin esperar etiquetas futuras. Se toma una distribución histórica de temperatura como referencia y se compara con un lote sintético cuyo sensor fue desplazado aproximadamente +14 °C.
-
-Se utiliza **Population Stability Index (PSI)**, calculado sobre intervalos de referencia:
-
-```text
-PSI = SUM_i (p_actual_i - p_referencia_i)
-            * ln(p_actual_i / p_referencia_i)
+```bash
+python -m actividad8.train_v2
+# Iniciar dos servidores FastAPI en puertos 8008 y 8009, con directorios de estado separados
+python -m actividad9.benchmark --single http://127.0.0.1:8008 --second http://127.0.0.1:8009
+python -m actividad9.fairness
+python -m actividad9.finops
+python -m actividad9.entregables
+pytest -q actividad9/test_activity9.py
 ```
 
-La regla exige al menos 100 observaciones por muestra y dispara alerta cuando PSI >0.20. El PSI cuantifica diferencia de distribución; **no demuestra automáticamente que haya bajado el ROC-AUC del modelo**.
+En CI se ejecuta esa secuencia en Linux. No requiere credenciales ni cuenta AWS.
 
-### Comparación del experimento
+## 11. Referencias verificables
 
-| Etapa | PSI de temperatura | Umbral | Evaluación |
-|---|---:|---:|---|
-| Antes | **0.071** | ≤0.20 | Lote estable |
-| Durante | **10.361** | ≤0.20 | Drift pronunciado |
-| Después | **0.056** | ≤0.20 | Lote restaurado |
+- [AWS Fargate pricing](https://aws.amazon.com/fargate/pricing/)
+- [AWS ELB/ALB pricing](https://aws.amazon.com/elasticloadbalancing/pricing/)
+- [AWS RDS PostgreSQL pricing](https://aws.amazon.com/rds/postgresql/pricing/)
+- [FinOps Foundation — Inform, Optimize, Operate](https://www.finops.org/framework/phases/)
+- [AWS Well-Architected Framework](https://docs.aws.amazon.com/wellarchitected/latest/framework/the-pillars-of-the-framework.html)
+- [NIST AI Risk Management Framework](https://airc.nist.gov/airmf-resources/airmf/5-sec-core/)
+- [ISO/IEC 42001:2023](https://www.iso.org/standard/42001)
+- [LFPDPPP México, texto vigente en Cámara de Diputados](https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf)
 
-![Evidencia real Streamlit INC-02, PSI antes durante después](actividad8/evidence/screenshots/INC-02_drift_antes_durante_despues.png)
-
-**Figura 2.** La perturbación de sensores produce un PSI elevado, claramente por encima del umbral. Después de retirar el lote anómalo se restaura una distribución normal.
-
-### Runbook RB-DRIFT
-
-1. Verificar que las muestras cumplen el mínimo de observaciones.
-2. Calcular PSI de referencia y lote alterado; emitir alerta P2 si excede 0.20.
-3. **Poner en cuarentena el lote sintético**. El laboratorio registra cero inferencias operativas a partir de ese lote.
-4. Restaurar una muestra previamente validada y recalcular PSI desde los nuevos datos.
-5. Cerrar como **RESOLVED** solo si PSI <0.20; en otro caso escalar al responsable ML.
-
-**Resultado:** RB-DRIFT = RESOLVED. Esta respuesta confirma la recuperación de las entradas del laboratorio; **no representa reentrenamiento ni prueba de recuperación de precision en datos futuros**.
-
----
-
-## 10. Runbooks, automatización y gobernanza
-
-### Catálogo completo de procedimientos
-
-| Runbook | Detonante y prioridad | Responsable | Actuación | Condición de cierre |
-|---|---|---|---|---|
-| RB-LATENCY | Oportunidad <99%, P2 | SRE | Retirar fallo controlado, repetir peticiones | Dos ventanas HTTP saludables |
-| RB-DRIFT | PSI >0.20, P2 | Ingeniería ML | Aislar lote alterado, restaurar lote validado | PSI restaurado <0.20 |
-| RB-AVAIL | 5xx o disponibilidad, P1 | SRE | Diagnóstico y comprobación de salud | Recuperación comprobada o escalamiento |
-| RB-CAPACITY | CPU >85%, P2 | SRE | Medir, investigar recursos, escalar a responsable | Capacidad normal o escalamiento |
-| RB-QUALITY | AUC <0.75 con etiquetas maduras, P2 | ML Lead | Validar etiquetas, analizar drift, evaluar candidato | Aprobación humana |
-
-Los dos primeros fueron ejecutados como **runbooks operativos del laboratorio**. Los demás son reglas con procedimientos y pruebas de detección, no recuperaciones de infraestructura demostradas.
-
-### Flujo de respuesta verificable
-
-```mermaid
-flowchart TD
-    A[Solicitudes o lotes de sensores] --> B[Medir SLI y drift]
-    B --> C{¿Incumple la regla?}
-    C -->|No| D[Registrar estado normal]
-    C -->|Sí| E[Clasificar P1 / P2]
-    E --> F{¿Alerta ya activa?}
-    F -->|Sí| G[SUPPRESSED_DUPLICATE]
-    F -->|No| H[EMITTED]
-    G --> I[Ejecutar respuesta permitida]
-    H --> I
-    I --> J[Repetir mediciones]
-    J --> K{¿Verificación aprobada?}
-    K -->|Sí| L[RESOLVED + evidencia]
-    K -->|No| M[ESCALATE + fallar validación]
-```
-
-### Reentrenamiento, promoción y rollback: mecanismos documentados
-
-**Reentrenamiento gobernado:** recopilar etiquetas maduras y evaluar drift, preparar datos revisados, entrenar candidato, registrar parámetros/métricas en MLflow, probarlo sobre un conjunto de evaluación común y exigir aprobación humana antes de promoverlo.
-
-**Rollback gobernado:** identificar última versión estable y compatible, verificar hash y features, restaurar solo mediante canal autorizado, comprobar salud de API, inferencia y persistencia y documentar la causa raíz.
-
-**Lo que NO se implementó:** despliegue automático de una versión reentrenada, rollback operativo de modelos, autoescalado de contenedores ni reparación de máquinas. [Detalle de las responsabilidades, límites y procedimientos](actividad8/docs/AUTOMATIZACION_Y_GOBERNANZA.md). Esta transparencia evita presentar una simulación como operación real.
-
----
-
-## 11. GitHub Actions, pruebas y reproducibilidad
-
-### Automatización ejecutable
-
-El [workflow principal](.github/workflows/actividad8.yml) realiza, en orden:
-
-1. Instalar versiones fijas de las dependencias y ejecutar pruebas de etiquetas, PSI y seis alertas.
-2. Reconstruir el dataset V2 y entrenar el Random Forest con 72 horas de horizonte.
-3. Registrar y auditar parámetros, 15 métricas y artefactos en MLflow.
-4. Arrancar FastAPI local de prueba e inyectar incidentes de latencia y drift.
-5. Verificar el antes/durante/después, la deduplicación y ambos runbooks.
-6. Registrar seis runs adicionales de incidentes y comparar sus métricas con el JSON medido.
-7. Renderizar Streamlit bajo una prueba, arrancar el servicio y comprobar su healthcheck.
-8. Publicar logs, resultados, tracking de MLflow y modelo como artefacto de CI (retención 30 días).
-
-**Si una verificación falla, el workflow no debe declararse aprobado.** Consultar la lista completa de [ejecuciones y estados](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad8.yml). Además existe un [workflow para capturas auténticas de la UI MLflow](.github/workflows/actividad8-mlflow-screenshots.yml).
-
-### Instalación local en Windows
-
-Se requiere **Git y Docker Desktop**. En PowerShell:
-
-```powershell
-git clone --branch actividad8-v2-observabilidad https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII.git PredictiveMaintenance-Actividad8
-cd PredictiveMaintenance-Actividad8
-docker compose -f actividad8/compose.yaml up --build -d --wait
-docker compose -f actividad8/compose.yaml ps
-```
-
-- **Dashboard Streamlit:** http://localhost:8510
-- **Swagger FastAPI:** http://localhost:8008/docs
-- **Salud de API:** http://localhost:8008/health
-- **Métricas HTTP:** http://localhost:8008/metrics
-
-Probar POST /predict con el cuerpo JSON:
-
-```json
-{"machine_id":"PM-049"}
-```
-
-Para detener sin borrar SQLite:
-
-```powershell
-docker compose -f actividad8/compose.yaml down
-```
-
-La inyección de errores queda **deshabilitada por defecto** al ejecutar Docker de demostración. GitHub Actions regenera el laboratorio sin requerir una instalación local de Python.
-
----
-
-## 12. Conclusiones, limitaciones y futuras mejoras
-
-1. **La observabilidad es parte del valor de la IA:** el piloto incorpora HTTP, logs estructurados, correlación y registro de inferencias, complementando las métricas del Random Forest.
-2. **La latencia exige respuesta medible:** INC-01 pasó de 35.9 a 689.2 ms y regresó a 37.2 ms. Declarar recuperación requiere nuevas mediciones, no asignar una cifra fija.
-3. **Drift y degradación de calidad son conceptos diferentes:** un PSI de 10.361 demuestra un cambio de distribución, pero el impacto en el modelo requiere etiquetas y evaluación supervisada separada.
-4. **Los SLO priorizan consecuencias y error budget:** seis reglas cubren disponibilidad, fallos, oportunidad, capacidad, sensores y calidad; la deduplicación elimina al menos una notificación redundante en el ejercicio.
-5. **MLflow proporciona trazabilidad experimental:** entrenamiento y etapas de incidentes están en el mismo experimento, con métricas verificadas y artefactos. Sus capturas permanentes facilitan la revisión académica.
-6. **La automatización debe tener límites verificables:** los runbooks resuelven fallas controladas; rollback, reentrenamiento de despliegue y escalamiento real requieren controles de aprobación y una arquitectura operativa futura.
-
-**Limitaciones críticas.** Dataset sintético más predecible que V1; etiquetas reales no disponibles; umbrales sin calibración industrial; ventanas HTTP pequeñas; CPU del runner, no del contenedor; sin operación ininterrumpida, sin OpenTelemetry distribuido ni proceso de on-call. Los eventos simulados no sustituyen evidencia de una fábrica.
-
-**Siguientes avances industriales:** datos reales y etiquetas maduras, SLO con ventanas temporales representativas, métricas centralizadas, alert manager persistente, drift multivariable, seguimiento de costos de falsas alarmas por episodio, pruebas de robustez y promoción/rollback de modelos con aprobación humana.
-
----
-
-## 13. Cobertura de los cuatro entregables
-
-La plataforma describe documentos PDF/Word, evidencia de implementación, simulación de incidentes y código/configuración. **Este README integra las cuatro piezas** para la modalidad de entrega por GitHub explicada en clase, con archivos fuente y anexos disponibles por enlace.
-
-| Entregable de la actividad | Secciones de este README | Evidencia adicional |
-|---|---|---|
-| **1. Documento técnico**: indicadores, alertas, dashboards, drift, runbooks y automatización | 2, 3, 4, 6, 7, 10 y 12 | [metodología](actividad8/docs/METODOLOGIA.md) · [gobernanza](actividad8/docs/AUTOMATIZACION_Y_GOBERNANZA.md) |
-| **2. Evidencia de implementación**: MLflow, métricas, alertas y pantallas | 4, 5, 6 y 7 | [tracking MLflow](actividad8/docs/MLFLOW_EVIDENCIA.md) · [CI](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/actividad8.yml) |
-| **3. Simulación de al menos dos incidentes**: registro, runbooks y resultados | 8, 9 y 10 | [capturas](actividad8/docs/EVIDENCIAS_VISUALES.md) · [incidentes](actividad8/evidence/incidents.json) |
-| **4. Código/configuración**: scripts Python, SLO, alertas y automatización | 2, 4, 6, 10 y 11 | [source actividad8](actividad8/) · [workflow](.github/workflows/actividad8.yml) |
-
-**Aclaración de formato:** la instrucción escrita original menciona un ZIP con PDF/Word. Para entregar solo el enlace GitHub se toma como referencia la aclaración verbal del profesor. El repositorio sigue siendo descargable con **Code → Download ZIP** si se requiriera un formato adicional. No se atribuyen al sistema funciones no implementadas.
-
----
-
-### Referencias metodológicas
-
-- [Google, *SRE Workbook — Implementing SLOs*](https://sre.google/workbook/implementing-slos/). Definición de SLI/SLO, presupuestos de error y decisiones operativas.
-- [MLflow, *Tracking Quickstart*](https://mlflow.org/docs/latest/ml/getting-started/quickstart/). Experimentos, parámetros, métricas, artefactos y revisión de runs.
-- [FastAPI, *Middleware*](https://fastapi.tiangolo.com/tutorial/middleware/). Instrumentación transversal de solicitudes y respuestas.
-- [GitHub, *actions/upload-artifact*](https://github.com/actions/upload-artifact). Persistencia temporal de evidencias de workflows.
-
-**Referencias del proyecto:** [Rúbrica y matriz de cobertura](actividad8/docs/AUDITORIA_RUBRICA.md) · [Runbooks completos](actividad8/docs/RUNBOOKS.md) · [Evidencias visuales](actividad8/docs/EVIDENCIAS_VISUALES.md) · [MLflow](actividad8/docs/MLFLOW_EVIDENCIA.md) · [Fase II original (main)](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/tree/main).
-
-*El objetivo académico es demostrar observabilidad y respuesta reproducibles, no prometer rendimiento industrial ni automatizaciones de mantenimiento físico.*
+**Nota metodológica:** la documentación y archivos de costos son de simulación parametrizada. Antes de despliegue real, confirmar tarifas en AWS Pricing Calculator, arquitectura y residencia de datos, pruebas en Fargate con límites reales y procedimientos de aprobación humana.
