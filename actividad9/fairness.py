@@ -43,6 +43,23 @@ def main():
         y=subset.failure_next_72h.astype(int).to_numpy()
         p=model.predict_proba(subset[FEATURES])[:,1]
         groups[g]={**calculate(y,p,th),"machines":int(subset.machine_id.nunique())}
+        # Bootstrap por clusters de máquinas (NO por ventana correlacionada).
+        # Solo cuatro máquinas independientes por tipo; intervalos ilustrativos.
+        machine_arrays=[]
+        for mid,ix in subset.groupby("machine_id").indices.items():
+            a=np.asarray(ix,dtype=int)
+            machine_arrays.append((y[a],p[a]))
+        rng=np.random.default_rng(20261119+ord(g))
+        boot=[]
+        for _ in range(1500):
+            selections=rng.integers(0,len(machine_arrays),len(machine_arrays))
+            all_y=np.concatenate([machine_arrays[k][0] for k in selections])
+            all_p=np.concatenate([machine_arrays[k][1] for k in selections])
+            valid=calculate(all_y,all_p,th)["recall_tpr"]
+            if valid is not None: boot.append(valid)
+        groups[g]["tpr_cluster_bootstrap_95ci"]=[
+            float(np.quantile(boot,.025)),float(np.quantile(boot,.975))
+        ] if boot else None
     def gap(key):
         valid=[x[key] for x in groups.values() if x[key] is not None]
         return round(max(valid)-min(valid),6) if len(valid)==3 else None
@@ -61,7 +78,7 @@ def main():
       "caveats":["No real human personal or protected traits in data.",
         "Only four pilot machines of each type; within-group observations are temporally correlated.",
         "Performance gaps may reflect synthetic generator mechanisms, not discrimination.",
-        "Confidence intervals require machine-level bootstrap / external validation before deployment.",
+        "Bootstrap CIs resample four held-out machines per type; extremely few clusters and not proof of industrial coverage.",
         "Group gap values are descriptive, not proof of fairness or safety."]
     }
     (OUT/"fairness_machine_types.json").write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n")
