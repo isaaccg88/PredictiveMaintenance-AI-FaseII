@@ -20,7 +20,11 @@
       "predicted_positive_rate": 0.09029896278218426,
       "roc_auc": 0.9634903610036976,
       "average_precision": 0.7822572985959257,
-      "machines": 4
+      "machines": 4,
+      "tpr_cluster_bootstrap_95ci": [
+        0.55,
+        0.9166666666666666
+      ]
     },
     "B": {
       "n": 1625,
@@ -37,7 +41,11 @@
       "predicted_positive_rate": 0.1003076923076923,
       "roc_auc": 0.9680709011886683,
       "average_precision": 0.8456500504246004,
-      "machines": 4
+      "machines": 4,
+      "tpr_cluster_bootstrap_95ci": [
+        0.4682291666666667,
+        0.9791666666666666
+      ]
     },
     "C": {
       "n": 1632,
@@ -54,7 +62,11 @@
       "predicted_positive_rate": 0.10232843137254902,
       "roc_auc": 0.9638310185185184,
       "average_precision": 0.8253788235115249,
-      "machines": 4
+      "machines": 4,
+      "tpr_cluster_bootstrap_95ci": [
+        0.696969696969697,
+        0.9833333333333333
+      ]
     }
   },
   "gaps": {
@@ -73,7 +85,7 @@
     "No real human personal or protected traits in data.",
     "Only four pilot machines of each type; within-group observations are temporally correlated.",
     "Performance gaps may reflect synthetic generator mechanisms, not discrimination.",
-    "Confidence intervals require machine-level bootstrap / external validation before deployment.",
+    "Bootstrap CIs resample four held-out machines per type; extremely few clusters and not proof of industrial coverage.",
     "Group gap values are descriptive, not proof of fairness or safety."
   ]
 }

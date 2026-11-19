@@ -19,11 +19,14 @@
         "ok_2xx": 60,
         "errors": 0,
         "availability": 1.0,
-        "p50_ms": 28.69,
-        "p95_ms": 45.58,
-        "p99_ms": 48.31,
-        "throughput_rps": 32.853,
-        "elapsed_seconds": 1.826,
+        "timely_2xx_count": 60,
+        "timely_ratio": 1.0,
+        "timely_slo_99_met": true,
+        "p50_ms": 16.46,
+        "p95_ms": 27.9,
+        "p99_ms": 28.47,
+        "throughput_rps": 51.208,
+        "elapsed_seconds": 1.172,
         "status_codes": {
           "200": 60
         }
@@ -34,11 +37,14 @@
         "ok_2xx": 60,
         "errors": 0,
         "availability": 1.0,
-        "p50_ms": 87.4,
-        "p95_ms": 117.14,
-        "p99_ms": 154.48,
-        "throughput_rps": 45.446,
-        "elapsed_seconds": 1.32,
+        "timely_2xx_count": 60,
+        "timely_ratio": 1.0,
+        "timely_slo_99_met": true,
+        "p50_ms": 76.11,
+        "p95_ms": 86.41,
+        "p99_ms": 95.46,
+        "throughput_rps": 52.948,
+        "elapsed_seconds": 1.133,
         "status_codes": {
           "200": 60
         }
@@ -49,11 +55,14 @@
         "ok_2xx": 60,
         "errors": 0,
         "availability": 1.0,
-        "p50_ms": 173.0,
-        "p95_ms": 209.27,
-        "p99_ms": 230.5,
-        "throughput_rps": 45.493,
-        "elapsed_seconds": 1.319,
+        "timely_2xx_count": 60,
+        "timely_ratio": 1.0,
+        "timely_slo_99_met": true,
+        "p50_ms": 147.04,
+        "p95_ms": 168.31,
+        "p99_ms": 170.41,
+        "throughput_rps": 54.62,
+        "elapsed_seconds": 1.098,
         "status_codes": {
           "200": 60
         }
@@ -64,11 +73,14 @@
         "ok_2xx": 60,
         "errors": 0,
         "availability": 1.0,
-        "p50_ms": 354.54,
-        "p95_ms": 976.41,
-        "p99_ms": 1169.04,
-        "throughput_rps": 30.361,
-        "elapsed_seconds": 1.976,
+        "timely_2xx_count": 60,
+        "timely_ratio": 1.0,
+        "timely_slo_99_met": true,
+        "p50_ms": 290.42,
+        "p95_ms": 323.93,
+        "p99_ms": 342.63,
+        "throughput_rps": 54.305,
+        "elapsed_seconds": 1.105,
         "status_codes": {
           "200": 60
         }
@@ -77,14 +89,14 @@
     "resources_before": {
       "processes": [
         {
-          "pid": 2298,
-          "rss_mb": 269.45,
-          "cpu_time_seconds": 1.71
+          "pid": 2308,
+          "rss_mb": 269.33,
+          "cpu_time_seconds": 1.31
         },
         {
-          "pid": 2299,
-          "rss_mb": 268.91,
-          "cpu_time_seconds": 1.7
+          "pid": 2309,
+          "rss_mb": 268.71,
+          "cpu_time_seconds": 1.37
         }
       ],
       "scope": "host_process_not_Fargate"
@@ -92,14 +104,14 @@
     "resources_after": {
       "processes": [
         {
-          "pid": 2298,
-          "rss_mb": 280.41,
-          "cpu_time_seconds": 7.68
+          "pid": 2308,
+          "rss_mb": 279.79,
+          "cpu_time_seconds": 6.59
         },
         {
-          "pid": 2299,
-          "rss_mb": 268.91,
-          "cpu_time_seconds": 1.71
+          "pid": 2309,
+          "rss_mb": 268.71,
+          "cpu_time_seconds": 1.38
         }
       ],
       "scope": "host_process_not_Fargate"
@@ -114,11 +126,14 @@
         "ok_2xx": 60,
         "errors": 0,
         "availability": 1.0,
-        "p50_ms": 29.65,
-        "p95_ms": 44.99,
-        "p99_ms": 53.44,
-        "throughput_rps": 31.003,
-        "elapsed_seconds": 1.935,
+        "timely_2xx_count": 60,
+        "timely_ratio": 1.0,
+        "timely_slo_99_met": true,
+        "p50_ms": 28.13,
+        "p95_ms": 28.88,
+        "p99_ms": 44.39,
+        "throughput_rps": 36.76,
+        "elapsed_seconds": 1.632,
         "status_codes": {
           "200": 60
         }
@@ -129,11 +144,14 @@
         "ok_2xx": 60,
         "errors": 0,
         "availability": 1.0,
-        "p50_ms": 60.61,
-        "p95_ms": 99.94,
-        "p99_ms": 108.94,
-        "throughput_rps": 63.46,
-        "elapsed_seconds": 0.945,
+        "timely_2xx_count": 60,
+        "timely_ratio": 1.0,
+        "timely_slo_99_met": true,
+        "p50_ms": 42.93,
+        "p95_ms": 70.62,
+        "p99_ms": 75.13,
+        "throughput_rps": 85.33,
+        "elapsed_seconds": 0.703,
         "status_codes": {
           "200": 60
         }
@@ -144,11 +162,14 @@
         "ok_2xx": 60,
         "errors": 0,
         "availability": 1.0,
-        "p50_ms": 160.97,
-        "p95_ms": 553.89,
-        "p99_ms": 598.17,
-        "throughput_rps": 44.114,
-        "elapsed_seconds": 1.36,
+        "timely_2xx_count": 60,
+        "timely_ratio": 1.0,
+        "timely_slo_99_met": true,
+        "p50_ms": 104.65,
+        "p95_ms": 187.63,
+        "p99_ms": 198.97,
+        "throughput_rps": 75.385,
+        "elapsed_seconds": 0.796,
         "status_codes": {
           "200": 60
         }
@@ -159,11 +180,14 @@
         "ok_2xx": 60,
         "errors": 0,
         "availability": 1.0,
-        "p50_ms": 252.08,
-        "p95_ms": 429.5,
-        "p99_ms": 442.4,
-        "throughput_rps": 57.856,
-        "elapsed_seconds": 1.037,
+        "timely_2xx_count": 60,
+        "timely_ratio": 1.0,
+        "timely_slo_99_met": true,
+        "p50_ms": 188.72,
+        "p95_ms": 328.07,
+        "p99_ms": 341.45,
+        "throughput_rps": 74.052,
+        "elapsed_seconds": 0.81,
         "status_codes": {
           "200": 60
         }
@@ -172,14 +196,14 @@
     "resources_before": {
       "processes": [
         {
-          "pid": 2298,
-          "rss_mb": 280.41,
-          "cpu_time_seconds": 7.68
+          "pid": 2308,
+          "rss_mb": 279.79,
+          "cpu_time_seconds": 6.59
         },
         {
-          "pid": 2299,
-          "rss_mb": 268.91,
-          "cpu_time_seconds": 1.71
+          "pid": 2309,
+          "rss_mb": 268.71,
+          "cpu_time_seconds": 1.38
         }
       ],
       "scope": "host_process_not_Fargate"
@@ -187,14 +211,14 @@
     "resources_after": {
       "processes": [
         {
-          "pid": 2298,
-          "rss_mb": 280.77,
-          "cpu_time_seconds": 11.86
+          "pid": 2308,
+          "rss_mb": 280.58,
+          "cpu_time_seconds": 10.09
         },
         {
-          "pid": 2299,
-          "rss_mb": 275.68,
-          "cpu_time_seconds": 5.34
+          "pid": 2309,
+          "rss_mb": 275.18,
+          "cpu_time_seconds": 4.22
         }
       ],
       "scope": "host_process_not_Fargate"
