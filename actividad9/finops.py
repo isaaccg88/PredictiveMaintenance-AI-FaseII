@@ -92,7 +92,7 @@ def main():
     path=OUT/"load_benchmark.json"
     bench=json.loads(path.read_text()) if path.exists() else {}
     observed=bench.get("single",{}).get("levels",[])
-    eligible=[x for x in observed if x.get("availability",0)>=.99 and x.get("p95_ms",float("inf"))<=500]
+    eligible=[x for x in observed if x.get("availability",0)>=.99 and x.get("timely_ratio",0)>=.99 and x.get("p95_ms",float("inf"))<=500]
     # Solo cargas realmente medidas y exitosas; no extrapolar de escenarios inestables.
     safe=max((x["throughput_rps"] for x in eligible),default=None)
     settings={"safe_single_replica_rps":safe}
