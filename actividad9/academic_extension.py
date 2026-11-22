@@ -33,7 +33,11 @@ def extra_sections(fairness,costs,bench,evaluation,P,H,table,diagram_path):
         for label,k in (("1 instancia","single"),("2 instancias","dual"))
         for x in bench[k]["levels"]
        ]),
-       H("B.1 Interpretación de los resultados",2)]
+       H("B.1 Interpretación de los resultados",2),
+       Image(str(Path(__file__).resolve().parent/"evidence"/"fig_02_latencia_p95.png"),width=16*cm,height=8.5*cm),
+       P("Figura B1. Curva p95: la medición de latencia se compara con el umbral diagnóstico de 500 ms; el umbral aislado no sustituye la comprobación del SLI de oportunidad de 99%."),
+       Image(str(Path(__file__).resolve().parent/"evidence"/"fig_03_throughput.png"),width=16*cm,height=8.5*cm),
+       P("Figura B2. Throughput: la prueba muestra tasas observadas con uno y dos servidores en el mismo runner, no escalado horizontal real en AWS.")]
     single={x["concurrency"]:x for x in bench["single"]["levels"]}
     dual={x["concurrency"]:x for x in bench["dual"]["levels"]}
     a=single[4];b=dual[4];hi1=single[16];hi2=dual[16]
@@ -56,7 +60,9 @@ def extra_sections(fairness,costs,bench,evaluation,P,H,table,diagram_path):
         [x["scenario"],x["architecture_name"],str(x["replicas_estimated"]),
          f"{x['total_usd_month']:.2f}",f"{x['usd_per_1000_requests']:.5f}"]
         for x in costs["estimates"]]),
-       H("C.1 Descomposición de costo para 10 millones de solicitudes",2)]
+       H("C.1 Descomposición de costo para 10 millones de solicitudes",2),
+       Image(str(Path(__file__).resolve().parent/"evidence"/"fig_04_costos_finops.png"),width=16*cm,height=8.5*cm),
+       P("Figura C1. Nueve estimaciones tarifarias: se muestran tres volúmenes y tres arquitecturas; comparar HA x86 frente a HA ARM dimensionada no aísla el efecto del procesador y excluye costos de red y operación.")]
     for x in [y for y in costs["estimates"] if y["scenario"]=="crecimiento"]:
         s.append(P(f"{x['architecture_name']}: API Fargate USD {x['api_ecs_fargate_usd']:.2f}; dashboard {x['dashboard_fargate_usd']:.2f}; ALB {x['alb_usd']:.2f}; DB hipotética {x['db_assumption_usd']:.2f}; monitoreo {x['cloudwatch_assumption_usd']:.2f}; almacenamiento {x['s3_assumption_usd']:.2f}; egreso {x['egress_assumption_usd']:.2f}. Total = USD {x['total_usd_month']:.2f}."))
     s+=[
@@ -71,6 +77,8 @@ def extra_sections(fairness,costs,bench,evaluation,P,H,table,diagram_path):
          f"{x['recall_tpr']*100:.1f}%",f"{x['fpr']*100:.1f}%"] for g,x in fairness["groups"].items()
       ]),
       H("D.1 Brechas y precisión estadística",2),
+      Image(str(Path(__file__).resolve().parent/"evidence"/"fig_05_fairness_tpr.png"),width=16*cm,height=8.5*cm),
+      P("Figura D1. TPR por tipo de equipo: los intervalos bootstrap por máquina se superponen ampliamente, por lo que las diferencias descriptivas no permiten acreditar paridad fuera de esta muestra sintética."),
       P(f"Brecha de recall/TPR = {fairness['gaps']['equal_opportunity_tpr_gap']*100:.2f} puntos porcentuales. Brecha FPR = {fairness['gaps']['false_positive_rate_gap']*100:.2f} puntos porcentuales. La política de revisión propuesta usa 10 puntos porcentuales para TPR, sin convertirlo en criterio de certificación."),
     ]
     for g,x in fairness["groups"].items():
