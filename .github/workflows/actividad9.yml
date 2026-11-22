@@ -64,6 +64,7 @@ jobs:
       - name: Generar reporte, anexo, diagramas y ZIP
         run: |
           python -m actividad9.entregables
+          python -m actividad9.update_readme
           python - <<'PY'
           from pathlib import Path
           p=Path("actividad9/entregables")
@@ -89,7 +90,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git fetch origin actividad9-escalabilidad-gobernanza
           git reset --mixed FETCH_HEAD
-          git add actividad9/evidence/*.json actividad9/evidence/*.csv actividad9/evidence/*.md actividad9/evidence/fig_*.png actividad9/entregables/*
+          git add README.md actividad9/evidence/*.json actividad9/evidence/*.csv actividad9/evidence/*.md actividad9/evidence/fig_*.png actividad9/entregables/*
           if git diff --cached --quiet; then echo 'Sin cambios de evidencia'; exit 0; fi
           git commit -m 'docs(actividad9): reportes, benchmark, fairness, costos y diagramas verificados [skip ci]'
           git push origin HEAD:actividad9-escalabilidad-gobernanza
