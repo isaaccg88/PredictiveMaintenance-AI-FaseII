@@ -19,7 +19,7 @@ from reportlab.lib.styles import getSampleStyleSheet,ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import SimpleDocTemplate,Paragraph,Table,TableStyle,Spacer,PageBreak,KeepTogether
+from reportlab.platypus import SimpleDocTemplate,Paragraph,Table,TableStyle,Spacer,PageBreak,KeepTogether,Image
 
 BASE=Path(__file__).resolve().parent
 OUT=BASE/"entregables"
@@ -265,6 +265,14 @@ def annex():
            "actividad9/evidence/*.json, arquitectura fuente e historial de GitHub Actions. "
            "El reporte y el anexo se crean automáticamente en el ejecutor de CI. "
            "Sin AWS real, no existe facturación, SLA observado en nube ni garantía de comportamiento ARM."),
+       H("G. Gráficas y lectura crítica de escenarios"),
+       Image(str(DATA/"fig_04_costos_finops.png"),width=16*cm,height=8.5*cm),
+       txt("Figura A1. Los costos son estimaciones parametrizadas: la arquitectura sin HA no equivale a las opciones con redundancia. El dimensionamiento ARM está pendiente de pruebas en esa plataforma."),
+       Image(str(DATA/"fig_05_fairness_tpr.png"),width=16*cm,height=8.5*cm),
+       txt("Figura A2. Las barras de incertidumbre corresponden al remuestreo por máquina (cuatro clústeres por tipo), no a miles de ventanas independientes."),
+       H("H. Confiabilidad estadística de la prueba de carga"),
+       txt("Cada prueba comprende 60 solicitudes. Aunque 60 de 60 tengan éxito, con una cota unilateral binomial del 95% el porcentaje de éxito poblacional podría ser tan bajo como 95.13%, suponiendo observaciones independientes. Esto NO demuestra un SLA de 99%. Para esa cota teórica se requerirían al menos 299 éxitos de 299, y aun así el tráfico dependiente y las condiciones variables exigirían pruebas sostenidas."),
+       txt("Las figuras y tablas tienen su fuente medible en load_benchmark.json, fairness_machine_types.json y finops_model.json. Los documentos y diagramas son generados en GitHub Actions y no contienen medidas de producción."),
     ]
     build_pdf(OUT/"02_anexo_tecnico_actividad9.pdf",s)
 
@@ -272,6 +280,8 @@ def main():
     OUT.mkdir(parents=True,exist_ok=True)
     for name in ("finops_model.json","fairness_machine_types.json","load_benchmark.json"):
         if not (DATA/name).exists():raise FileNotFoundError("Falta evidencia "+name)
+    from .visualizations import main as generate_visualizations
+    generate_visualizations()
     architecture();report();annex()
     items=[p for p in OUT.iterdir() if p.suffix in (".pdf",".png")]
     with zipfile.ZipFile(OUT/"Actividad9_Entregables_Tecmilenio.zip","w",zipfile.ZIP_DEFLATED) as z:
