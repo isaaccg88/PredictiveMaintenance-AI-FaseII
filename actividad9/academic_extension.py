@@ -24,7 +24,7 @@ def extra_sections(fairness,costs,bench,evaluation,P,H,table,diagram_path):
        P("Decisión arquitectónica: separar inferencia crítica del dashboard administrativo, migrar persistencia, establecer mínimo de dos réplicas por resiliencia y validar tamaños CPU/memoria usando carga representativa antes de seleccionar x86 o ARM."),
        H("A.3 SLA, disponibilidad y recuperación",2),
        P("Objetivos aspiracionales de staging: éxito HTTP >=99%, oportunidad >=99% con latencia <=500ms, 2 zonas de disponibilidad, rollback supervisado y evidencia de failover. No existe SLA contractual ni RTO/RPO probado porque no hay entorno AWS en producción. Se propone definir RTO <=60 minutos y RPO <=15 minutos como hipótesis a validar con ensayos de recuperación y respaldo."),
-       PageBreak(),H("APÉNDICE B. Evaluación técnica de rendimiento",1),
+       Spacer(1, .5*cm),H("APÉNDICE B. Evaluación técnica de rendimiento",1),
        P("Las tablas preservan las 60 solicitudes de cada ventana de carga. El p95 es percentil de respuesta; la oportunidad es el porcentaje de HTTP 2xx en <=500 ms. Para afirmar un SLO de 99% ambos indicadores y el conjunto de respuestas deben ser observados."),
        table(["API","Clientes","N","p50 ms","p95 ms","p99 ms","RPS","Oportunas"],[
         [label,str(x["concurrency"]),str(x["samples"]),
@@ -54,7 +54,7 @@ def extra_sections(fairness,costs,bench,evaluation,P,H,table,diagram_path):
          ["p95 inferencia HTTP",f"{single[4]['p95_ms']:.1f} ms a concurrencia 4","<=500ms","Reperfilar modelo y límites CPU/RAM"],
          ["Throughput",f"{single[4]['throughput_rps']:.1f} RPS (1), {dual[4]['throughput_rps']:.1f} RPS (2)","Medir capacidad al 50% utilización","Tasar por 1,000 inferencias exitosas"],
        ]),
-       PageBreak(),H("APÉNDICE C. FinOps: modelo económico y sensibilidad",1),
+       Spacer(1, .5*cm),H("APÉNDICE C. FinOps: modelo económico y sensibilidad",1),
        P("Región y moneda: us-east-1, USD. La base computacional utiliza Fargate Linux x86 y ARM y ALB como referencias públicas. Los demás servicios se tratan como supuestos parametrizados. Los escenarios comparten 730 horas por mes y 1 LCU base de ALB no medida."),
        table(["Volumen","Arquitectura","Réplicas","USD/mes","USD/1000"],[
         [x["scenario"],x["architecture_name"],str(x["replicas_estimated"]),
@@ -70,7 +70,7 @@ def extra_sections(fairness,costs,bench,evaluation,P,H,table,diagram_path):
       P("La elección de arquitectura no se debe basar en el mínimo USD/mes bruto: cloud_naive elimina redundancia y puede incumplir el objetivo de continuidad. La comparación de optimización económica responsable es HA x86 vs HA ARM, sujeto a confirmar capacidades, comportamiento bajo fallo y costos de soporte."),
       P("Pruebas de sensibilidad propuestas antes del presupuesto: (a) RDS y backup +50%; (b) duplicar egreso y logs; (c) picos x2 frente a supuesto; (d) 2 zonas con costos de transferencia interzona; (e) arquitectura con NAT y WAF. Las tablas actuales NO incluyen estos gastos, por lo que un comité no debe tratar sus totales como cotización vinculante."),
       P("Gestión FinOps: (Inform) etiquetar por ambiente/proyecto/centro de costos y emitir reporte USD/1000 predicciones; (Optimize) dimensionar tareas y revisar ARM, clases DB y cargas; (Operate) revisión semanal, presupuestos y alerta de sobrecosto, aprobación de compromisos y ajustes de SLA."),
-      PageBreak(),H("APÉNDICE D. Fairness y gobernanza responsable",1),
+      Spacer(1, .5*cm),H("APÉNDICE D. Fairness y gobernanza responsable",1),
       P("El concepto de fairness de esta actividad se refiere a equidad operacional del algoritmo respecto al tipo de máquina A, B y C. No hay personas, datos sensibles, atributos protegidos ni grupos demográficos en el dataset sintético; no se deben extrapolar estos resultados a decisiones laborales."),
       table(["Grupo","Máquinas","Positivas","TP","FN","FP","TN","TPR","FPR"],[
         [g,str(x["machines"]),str(x["positive"]),str(x["tp"]),str(x["fn"]),str(x["fp"]),str(x["tn"]),
@@ -97,7 +97,7 @@ def extra_sections(fairness,costs,bench,evaluation,P,H,table,diagram_path):
       ]),
       H("D.3 Marco legal y privacidad",2),
       P("La LFPDPPP de México es relevante si una futura solución ingiere información de operadores, turnos o identificadores ligados a trabajadores. Deben evaluarse finalidades, legitimación, transferencias, conservación, acceso y seguridad con asesoría jurídica antes de pasar a datos reales. Con sensores simulados sin personal identificable, la entrega no demuestra cumplimiento de una organización real."),
-      PageBreak(),H("APÉNDICE E. Roadmap y decisiones de gobierno",1),
+      Spacer(1, .5*cm),H("APÉNDICE E. Roadmap y decisiones de gobierno",1),
       table(["Hito","Responsable A/R","Evidencia requerida","Riesgo mitigado"],[
          ["Baseline y carga","SRE / Product Owner","p95/p99, throughput, éxito y errores de CI","Dimensionamiento"],
          ["Datos y privacidad","Security + Legal","Inventario, minimización y controles IAM","Exposición o uso indebido"],
