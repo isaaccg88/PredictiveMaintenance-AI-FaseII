@@ -98,18 +98,18 @@ El [benchmark reproducible](actividad9/benchmark.py) ejecuta POST /predict con c
 <!-- A9-BENCH-START -->
 ### Tabla 1. Baseline y pruebas de carga de la última ejecución verificada
 
-Los resultados provienen de [GitHub Actions #45059089849](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/45059089849). Se realizaron **60 solicitudes por ventana**, con concurrencia de 1, 4, 8 y 16. Dos procesos FastAPI comparten el **mismo runner**; esto no representa infraestructura desplegada en ECS, un ALB ni tolerancia a fallos multizona.
+Los resultados provienen de [GitHub Actions #45059397846](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/45059397846). Se realizaron **60 solicitudes por ventana**, con concurrencia de 1, 4, 8 y 16. Dos procesos FastAPI comparten el **mismo runner**; esto no representa infraestructura desplegada en ECS, un ALB ni tolerancia a fallos multizona.
 
 | Configuración | Concurrencia | N | p95 (ms) | p99 (ms) | Throughput (req/s) | SLI oportuno (2xx ≤500 ms) |
 |---|---:|---:|---:|---:|---:|---:|
-| Una API | 1 | 60 | 41.4 | 78.5 | 30.68 | 100.0% |
-| Una API | 4 | 60 | 147.6 | 149.3 | 33.17 | 100.0% |
-| Una API | 8 | 60 | 282.5 | 321.4 | 32.52 | 100.0% |
-| Una API | 16 | 60 | 602.0 | 609.3 | 31.55 | 53.3% |
-| Dos API, mismo runner | 1 | 60 | 39.9 | 41.0 | 31.85 | 100.0% |
-| Dos API, mismo runner | 4 | 60 | 88.8 | 90.1 | 52.13 | 100.0% |
-| Dos API, mismo runner | 8 | 60 | 193.7 | 203.0 | 50.91 | 100.0% |
-| Dos API, mismo runner | 16 | 60 | 412.3 | 418.8 | 51.56 | 100.0% |
+| Una API | 1 | 60 | 27.0 | 27.5 | 46.24 | 100.0% |
+| Una API | 4 | 60 | 89.8 | 92.4 | 52.83 | 100.0% |
+| Una API | 8 | 60 | 177.8 | 191.2 | 54.39 | 100.0% |
+| Una API | 16 | 60 | 379.1 | 397.7 | 52.12 | 100.0% |
+| Dos API, mismo runner | 1 | 60 | 27.4 | 29.1 | 42.88 | 100.0% |
+| Dos API, mismo runner | 4 | 60 | 51.4 | 54.8 | 95.56 | 100.0% |
+| Dos API, mismo runner | 8 | 60 | 129.3 | 147.9 | 90.25 | 100.0% |
+| Dos API, mismo runner | 16 | 60 | 203.8 | 222.4 | 92.05 | 100.0% |
 
 ![Figura 2. Latencia p95 con umbral de 500 ms](actividad9/evidence/fig_02_latencia_p95.png)
 
@@ -117,7 +117,7 @@ Los resultados provienen de [GitHub Actions #45059089849](https://github.com/isa
 
 ![Figura 3. Rendimiento RPS vs concurrencia](actividad9/evidence/fig_03_throughput.png)
 
-**Figura 3 — Throughput:** a concurrencia 4, una instancia procesó **33.17 req/s**, frente a **52.13 req/s** con dos, diferencia relativa del **57.2%**. Se trata de una comparación experimental con 60 solicitudes, no una razón de escalado garantizada ni lineal.
+**Figura 3 — Throughput:** a concurrencia 4, una instancia procesó **52.83 req/s**, frente a **95.56 req/s** con dos, diferencia relativa del **80.9%**. Se trata de una comparación experimental con 60 solicitudes, no una razón de escalado garantizada ni lineal.
 
 **Alcance estadístico:** aun si las 60 respuestas fueran correctas y oportunas, con una cota binomial unilateral del 95% y suponiendo independencia, el límite inferior aproximado de la tasa real es **95.13%**. Por tanto, mostrar 100% observado **no acredita estadísticamente el SLO de 99%**. Se requieren pruebas largas, bajo carga realista y entre zonas; un cálculo ideal necesitaría al menos 299 de 299 éxitos para superar esa cota del 99%, aunque la independencia tampoco estaría garantizada.
 
@@ -154,20 +154,20 @@ El [modelo económico reproducible](actividad9/finops.py) estudia tres arquitect
 | piloto (0.5 M) | `cloud_naive` | 1 | 128.70 | 0.25740 |
 | piloto (0.5 M) | `ha_without_rightsizing` | 2 | 214.74 | 0.42948 |
 | piloto (0.5 M) | `proposed_rightsized_arm` | 2 | 167.89 | 0.33578 |
-| crecimiento (10 M) | `cloud_naive` | 2 | 167.50 | 0.01675 |
+| crecimiento (10 M) | `cloud_naive` | 1 | 131.46 | 0.01315 |
 | crecimiento (10 M) | `ha_without_rightsizing` | 2 | 217.50 | 0.02175 |
-| crecimiento (10 M) | `proposed_rightsized_arm` | 3 | 185.06 | 0.01851 |
-| expansion (60 M) | `cloud_naive` | 9 | 434.28 | 0.00724 |
-| expansion (60 M) | `ha_without_rightsizing` | 12 | 592.40 | 0.00987 |
-| expansion (60 M) | `proposed_rightsized_arm` | 23 | 487.92 | 0.00813 |
+| crecimiento (10 M) | `proposed_rightsized_arm` | 2 | 170.65 | 0.01706 |
+| expansion (60 M) | `cloud_naive` | 6 | 326.16 | 0.00544 |
+| expansion (60 M) | `ha_without_rightsizing` | 7 | 412.20 | 0.00687 |
+| expansion (60 M) | `proposed_rightsized_arm` | 14 | 358.16 | 0.00597 |
 
 ![Figura 4. Comparativo de costos en los escenarios de volumen](actividad9/evidence/fig_04_costos_finops.png)
 
 **Figura 4 — Costos modelados:** el costo aumenta al incorporar redundancia y al dimensionar más tareas. Las diferencias entre HA-x86 y HA-ARM son **hipótesis de costos**, no ahorros cobrados ni cotizaciones completas.
 
-**Comparación con resiliencia equiparable, escenario de 10 M:** HA-x86 = **US$217.50/mes** vs. HA-ARM con *right-sizing* = **US$185.06/mes**; diferencia = **US$32.44/mes (14.9%)**. Atención: esa diferencia combina **menor tarifa ARM y menor vCPU por tarea**; no demuestra que el mismo trabajo alcance igual latencia.
+**Comparación con resiliencia equiparable, escenario de 10 M:** HA-x86 = **US$217.50/mes** vs. HA-ARM con *right-sizing* = **US$170.65/mes**; diferencia = **US$46.85/mes (21.5%)**. Atención: esa diferencia combina **menor tarifa ARM y menor vCPU por tarea**; no demuestra que el mismo trabajo alcance igual latencia.
 
-**Sensibilidad:** si el modelo ARM necesitara **dos tareas API adicionales** para sostener la carga (de 2 a 4), el costo modelado subiría a **US$213.90/mes** y la reducción frente al HA-x86 bajaría a **1.7%**. Si hubiera US$100 mensuales de otros componentes excluidos para ambas arquitecturas, el porcentaje de ahorro nominal sería aproximadamente **10.2%**. Son perturbaciones **hipotéticas**, no cotizaciones.
+**Sensibilidad:** si el modelo ARM necesitara **dos tareas API adicionales** para sostener la carga (de 2 a 4), el costo modelado subiría a **US$199.49/mes** y la reducción frente al HA-x86 bajaría a **8.3%**. Si hubiera US$100 mensuales de otros componentes excluidos para ambas arquitecturas, el porcentaje de ahorro nominal sería aproximadamente **14.8%**. Son perturbaciones **hipotéticas**, no cotizaciones.
 
 **Advertencias FinOps:** el código usa precios tarifarios de Fargate/ALB como referencias, pero **RDS Multi-AZ, logs, almacenamiento y egreso son supuestos**. No incluye NAT, WAF, respaldos, cargas interzona, soporte, personal, impuestos ni precios negociados. Tampoco calcula el cobro real de LCU según dimensiones. La configuración `cloud_naive` es **sin alta disponibilidad** incluso si el modelo asigna varias tareas en la expansión: en ese caso seguirían concentradas en un único dominio de falla.
 
