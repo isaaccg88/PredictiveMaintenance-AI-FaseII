@@ -17,8 +17,7 @@
 7. [Auditoría ética, técnica y legal](#7-auditoría-ética-técnica-y-legal)
 8. [Fairness operacional entre tipos de máquina](#8-fairness-operacional-entre-tipos-de-máquina)
 9. [Plan de escalamiento responsable](#9-plan-de-escalamiento-responsable)
-10. [Entregables, reproducibilidad y rúbrica](#10-entregables-reproducibilidad-y-rúbrica)
-11. [Referencias verificables](#11-referencias-verificables)
+10. [Referencias verificables](#11-referencias-verificables)
 
 ---
 
@@ -231,21 +230,6 @@ El script [fairness.py](actividad9/fairness.py) reconstruye el dataset V2, conse
 
 No se habilitará mantenimiento físico automático; las decisiones siguen siendo humanas. El análisis de sostenibilidad incluye menor consumo de recursos por solicitud y visibilidad de costo, pero no inventa emisiones de CO2 sin métricas de proveedor.
 
-## 10. Entregables, reproducibilidad y rúbrica
-
-La plataforma solicita **un ZIP** con **(1) reporte técnico Word/PDF, (2) anexo técnico XLS/PDF y (3) diagrama de arquitectura imagen/PDF**. No asumimos que la autorización verbal de entrega GitHub de la Actividad 8 sustituya automáticamente el requisito escrito de la Actividad 9.
-
-El [workflow Actividad 9](.github/workflows/actividad9.yml) construye y verifica automáticamente, y publica un paquete ZIP descargable como artefacto de GitHub Actions:
-
-| Criterio (25 pts) | Evidencia principal |
-|---|---|
-| Análisis y rediseño escalabilidad | Diagrama fuente y PNG/PDF, benchmarks 1 y 2 endpoints, diseño AWS |
-| Optimización FinOps | Modelo tarifario, 9 escenarios, costo unitario, supuestos y SLA |
-| Gobernanza ética/legal | Auditoría NIST/ISO/LFPDPPP y fairness A/B/C |
-| Plan responsable | Hoja de ruta, responsables, puertas de aprobación y riesgos |
-
-**Archivos generados automáticamente en el workflow:** [reporte PDF](actividad9/entregables/01_reporte_tecnico_actividad9.pdf), [anexo PDF](actividad9/entregables/02_anexo_tecnico_actividad9.pdf), [diagrama PNG](actividad9/entregables/03_arquitectura_actual_vs_propuesta.png) y [ZIP de entrega](actividad9/entregables/Actividad9_Entregables_Tecmilenio.zip).
-
 ### Reproducibilidad
 
 ```bash
@@ -260,7 +244,7 @@ pytest -q actividad9/test_activity9.py
 
 En CI se ejecuta esa secuencia en Linux. No requiere credenciales ni cuenta AWS.
 
-## 11. Referencias verificables
+## 10. Referencias verificables
 
 - [AWS Fargate pricing](https://aws.amazon.com/fargate/pricing/)
 - [AWS ELB/ALB pricing](https://aws.amazon.com/elasticloadbalancing/pricing/)
