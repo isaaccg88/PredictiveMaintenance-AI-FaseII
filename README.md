@@ -30,6 +30,17 @@ La Actividad 9 evalúa cómo evolucionar esta arquitectura hacia un servicio con
 
 **Decisión estratégica:** diseñar AWS como caso cloud simulado (ECS Fargate, ALB, RDS Multi-AZ, S3, IAM y observabilidad), probar carga HTTP local real, construir un modelo FinOps paramétrico y auditar calidad por subgrupos de máquinas.
 
+### Matriz de trazabilidad para la rúbrica (cuatro criterios de 25 puntos)
+
+| Criterio oficial | Baseline / resultado trazable | Interpretación y evidencia |
+|---|---|---|
+| **1. Escalabilidad vertical y horizontal** | Benchmarks HTTP reales de 1 y 2 procesos en el mismo runner; límites verticales aún propuestos | [Resultados](actividad9/evidence/load_benchmark.json), [diagrama comparativo](actividad9/entregables/03_arquitectura_actual_vs_propuesta.png), sección 5 y reporte técnico |
+| **2. Optimización de costos y FinOps** | 9 escenarios paramétricos; costo/1,000 solicitudes y comparación entre opciones de HA | [Modelo FinOps](actividad9/evidence/finops_model.json), escenarios de sensibilidad y sección 6 |
+| **3. Gobernanza, ética y cumplimiento** | Matriz de riesgos, NIST AI RMF e ISO/IEC 42001 de referencia; TPR/FPR por tipos A/B/C | [Auditoría cuantitativa](actividad9/evidence/fairness_machine_types.json), sección 7/8, reporte PDF |
+| **4. Escalamiento responsable** | Cinco fases con responsables, criterios de no-go, controles de datos y costeo | Sección 9 y apéndice E del reporte técnico |
+
+**Clave de interpretación:** `MEDIDO` = ejecutado en GitHub Actions sobre datos simulados; `ESTIMADO` = fórmula FinOps y supuestos editables; `PROPUESTO` = controles y arquitectura cloud no desplegados. El cumplimiento de un SLO comercial y los costos facturados **no han sido medidos en AWS**.
+
 ## 2. Arquitectura actual y cuellos de botella
 
 | Capa | Implementación comprobada | Límite de escala |
@@ -84,6 +95,7 @@ El [benchmark reproducible](actividad9/benchmark.py) ejecuta POST /predict con c
 
 **Objetivos propuestos para un piloto cloud:** disponibilidad ≥99%, respuestas oportunas 2xx ≤500 ms en ≥99% de peticiones y revisión de p95 ≤500 ms. Son **metas**, no SLA contractual observado en AWS.
 
+<!-- A9-BENCH-START -->
 ### Tabla 1. Línea base de rendimiento y comparación horizontal (última ejecución verificada)
 
 Las mediciones siguientes proceden de [GitHub Actions #44569819287](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/44569819287), con **60 solicitudes por ventana y dos procesos que comparten el runner**. Se incluyen todas las concurrencias evaluadas, no solo la mejor.
@@ -102,6 +114,8 @@ Las mediciones siguientes proceden de [GitHub Actions #44569819287](https://gith
 **Interpretación:** todas las ventanas de esta ejecución alcanzaron 100% de respuestas oportunas; ello no garantiza 99% en producción ni otros días. El *throughput* a concurrencia 4 pasa de 52.95 a 85.33 req/s (61.2% superior). Son observaciones del mismo host, no una prueba de alta disponibilidad cloud.
 
 **Baseline de recursos:** [load_benchmark.json](actividad9/evidence/load_benchmark.json) conserva RSS y tiempo CPU de ambos procesos del runner. Esas magnitudes no equivalen a reservas CPU/RAM de un contenedor Fargate.
+
+<!-- A9-BENCH-END -->
 
 - [Resultado crudo de benchmarking](actividad9/evidence/load_benchmark.json)
 - [Script de carga](actividad9/benchmark.py)
@@ -125,6 +139,7 @@ El [modelo económico reproducible](actividad9/finops.py) estudia tres arquitect
 
 **Importes NO verificados como cotización:** RDS Single-AZ USD 45/mes, Multi-AZ USD 95/mes, logs USD 0.50/GB, egreso USD 0.09/GB, almacenamiento USD 0.023/GB-mes. Son variables de simulación. **NAT, WAF, backups, soporte y costo humano se excluyen** de totales; deberán presupuestarse antes de aprobar el despliegue. No proyectar ROI financiero con estos importes sin validación completa.
 
+<!-- A9-COST-START -->
 ### Tabla 2. Proyección económica en nueve escenarios (USD, hipótesis)
 
 | Volumen | Arquitectura | API estimadas | USD/mes | USD/1000 inferencias |
@@ -140,6 +155,8 @@ El [modelo económico reproducible](actividad9/finops.py) estudia tres arquitect
 | expansion (60 M/mes) | `proposed_rightsized_arm` | 14 | 358.16 | 0.00597 |
 
 En el escenario de 10 millones mensuales, el modelo HA-ARM de `US$170.65` frente a HA-x86 de `US$217.50` representa un **21.5% de reducción estimada** manteniendo la misma intención de alta disponibilidad. Su capacidad ARM no está validada. El escenario cloud básico de menor costo carece de redundancia, por lo que **no es una comparación justa de optimización**.
+
+<!-- A9-COST-END -->
 
 ### Marco FinOps
 
@@ -168,6 +185,7 @@ El script [fairness.py](actividad9/fairness.py) reconstruye el dataset V2, conse
 - Se informa la muestra disponible y se evita dar por concluida la equidad basándose en solo cuatro máquinas por tipo.
 - Las diferencias por grupo son **fairness técnica**, no fairness en categorías protegidas de personas.
 
+<!-- A9-FAIR-START -->
 ### Tabla 3. Resultados observados de fairness operacional
 
 | Tipo | Máquinas piloto | Ventanas | Recall/TPR | FPR | Precision | IC 95% TPR bootstrap por máquina |
@@ -177,6 +195,8 @@ El script [fairness.py](actividad9/fairness.py) reconstruye el dataset V2, conse
 | C | 4 | 1632 | 81.9% | 3.29% | 70.7% | [69.7%, 98.3%] |
 
 La brecha máxima de TPR es de **9.41 puntos porcentuales**, mientras que la brecha de FPR es **0.71 puntos**. Los intervalos bootstrap son exploratorios: solo existen cuatro máquinas piloto por tipo y los registros temporales no son independientes. No prueba ausencia de sesgos industriales o demográficos.
+
+<!-- A9-FAIR-END -->
 
 [Resultados por grupo (JSON)](actividad9/evidence/fairness_machine_types.json) · [Resumen académico](actividad9/evidence/fairness_summary.md)
 
@@ -205,7 +225,7 @@ El [workflow Actividad 9](.github/workflows/actividad9.yml) construye y verifica
 | Gobernanza ética/legal | Auditoría NIST/ISO/LFPDPPP y fairness A/B/C |
 | Plan responsable | Hoja de ruta, responsables, puertas de aprobación y riesgos |
 
-**Archivos esperados al terminar el workflow:** [reporte PDF](actividad9/entregables/01_reporte_tecnico_actividad9.pdf), [anexo PDF](actividad9/entregables/02_anexo_tecnico_actividad9.pdf), [diagrama PNG](actividad9/entregables/03_arquitectura_actual_vs_propuesta.png) y [ZIP de entrega](actividad9/entregables/Actividad9_Entregables_Tecmilenio.zip).
+**Archivos generados automáticamente en el workflow:** [reporte PDF](actividad9/entregables/01_reporte_tecnico_actividad9.pdf), [anexo PDF](actividad9/entregables/02_anexo_tecnico_actividad9.pdf), [diagrama PNG](actividad9/entregables/03_arquitectura_actual_vs_propuesta.png) y [ZIP de entrega](actividad9/entregables/Actividad9_Entregables_Tecmilenio.zip).
 
 ### Reproducibilidad
 
