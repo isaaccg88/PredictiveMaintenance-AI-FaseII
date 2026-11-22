@@ -272,7 +272,7 @@ def annex():
        txt("Figura A2. Las barras de incertidumbre corresponden al remuestreo por máquina (cuatro clústeres por tipo), no a miles de ventanas independientes."),
        H("H. Confiabilidad estadística de la prueba de carga"),
        txt("Cada prueba comprende 60 solicitudes. Aunque 60 de 60 tengan éxito, con una cota unilateral binomial del 95% el porcentaje de éxito poblacional podría ser tan bajo como 95.13%, suponiendo observaciones independientes. Esto NO demuestra un SLA de 99%. Para esa cota teórica se requerirían al menos 299 éxitos de 299, y aun así el tráfico dependiente y las condiciones variables exigirían pruebas sostenidas."),
-       txt("Las figuras y tablas tienen su fuente medible en load_benchmark.json, fairness_machine_types.json y finops_model.json. Los documentos y diagramas son generados en GitHub Actions y no contienen medidas de producción."),
+       txt("Trazabilidad: load_benchmark.json, fairness_machine_types.json y finops_model.json. Solo se miden datos sintéticos y carga HTTP local; no existen resultados industriales."),
     ]
     build_pdf(OUT/"02_anexo_tecnico_actividad9.pdf",s)
 
