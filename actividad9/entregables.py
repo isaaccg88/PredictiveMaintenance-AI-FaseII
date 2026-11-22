@@ -266,9 +266,9 @@ def annex():
            "El reporte y el anexo se crean automáticamente en el ejecutor de CI. "
            "Sin AWS real, no existe facturación, SLA observado en nube ni garantía de comportamiento ARM."),
        H("G. Gráficas y lectura crítica de escenarios"),
-       Image(str(DATA/"fig_04_costos_finops.png"),width=16*cm,height=8.5*cm),
+       Image(str(DATA/"fig_04_costos_finops.png"),width=14.5*cm,height=7.5*cm),
        txt("Figura A1. Los costos son estimaciones parametrizadas: la arquitectura sin HA no equivale a las opciones con redundancia. El dimensionamiento ARM está pendiente de pruebas en esa plataforma."),
-       Image(str(DATA/"fig_05_fairness_tpr.png"),width=16*cm,height=8.5*cm),
+       Image(str(DATA/"fig_05_fairness_tpr.png"),width=14.5*cm,height=7.5*cm),
        txt("Figura A2. Las barras de incertidumbre corresponden al remuestreo por máquina (cuatro clústeres por tipo), no a miles de ventanas independientes."),
        H("H. Confiabilidad estadística de la prueba de carga"),
        txt("Cada prueba comprende 60 solicitudes. Aunque 60 de 60 tengan éxito, con una cota unilateral binomial del 95% el porcentaje de éxito poblacional podría ser tan bajo como 95.13%, suponiendo observaciones independientes. Esto NO demuestra un SLA de 99%. Para esa cota teórica se requerirían al menos 299 éxitos de 299, y aun así el tráfico dependiente y las condiciones variables exigirían pruebas sostenidas."),
