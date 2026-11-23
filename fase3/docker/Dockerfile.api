@@ -3,7 +3,15 @@ WORKDIR /workspace
 COPY actividad8/requirements-runtime-api.txt /tmp/requirements-api.txt
 RUN pip install --no-cache-dir -r /tmp/requirements-api.txt
 COPY actividad8 /workspace/actividad8
+COPY fase3/__init__.py fase3/api.py /workspace/fase3/
+COPY fase3/build/candidate /workspace/candidate_release
+ARG MODEL_SLOT=stable
 ENV PYTHONPATH=/workspace ACT8_RUNTIME=/state LAB_MODE=0
-RUN python -c "from pathlib import Path; import json; p=Path('/workspace/actividad8/artifacts'); assert (p/'model_v2.joblib').stat().st_size>10000; assert json.loads((p/'metadata_v2.json').read_text())['horizon_hours']==72"
+RUN if [ "$MODEL_SLOT" = "candidate" ]; then \
+      cp /workspace/candidate_release/model_v2.joblib /workspace/actividad8/artifacts/model_v2.joblib && \
+      cp /workspace/candidate_release/metadata_v2.json /workspace/actividad8/artifacts/metadata_v2.json && \
+      cp /workspace/candidate_release/pilot_v2.json /workspace/actividad8/artifacts/pilot_v2.json; \
+    elif [ "$MODEL_SLOT" != "stable" ]; then exit 11; fi
+RUN python -c "from pathlib import Path; import json,hashlib; p=Path('/workspace/actividad8/artifacts'); m=json.loads((p/'metadata_v2.json').read_text()); assert m['horizon_hours']==72; assert hashlib.sha256((p/'model_v2.joblib').read_bytes()).hexdigest()==m['model_sha256']"
 EXPOSE 8008
-CMD ["python","-m","uvicorn","actividad8.service:app","--host","0.0.0.0","--port","8008"]
+CMD ["python","-m","uvicorn","fase3.api:app","--host","0.0.0.0","--port","8008"]
