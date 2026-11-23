@@ -29,7 +29,7 @@ El profesor solicita: (1) pipeline MLOps/GitOps, (2) documento técnico de opera
 
 **Solución investigada:** un sistema de IA que estima la probabilidad de falla de cada máquina en las siguientes **72 horas**, registra predicciones, presenta riesgos al equipo de mantenimiento y vigila tanto su desempeño de clasificación como la operación del servicio. El alcance académico utiliza 60 máquinas sintéticas y reserva 12 máquinas para una evaluación independiente del ajuste.
 
-**Contribución de Fase III:** cerrar el ciclo técnico demostrando una **línea automatizada de código/datos → entrenamiento → pruebas → MLflow → modelo firmado → despliegue de candidata → promoción → detección de fallo → rollback → recuperación auditada**.
+**Contribución de Fase III:** cerrar el ciclo técnico demostrando una **línea automatizada de código/datos → entrenamiento → pruebas → MLflow → modelo con huella SHA-256 validada → despliegue de candidata → promoción → detección de fallo → rollback → recuperación auditada**.
 
 | Indicador principal | Resultado comprobado | Qué demuestra y qué NO |
 |---|---:|---|
@@ -50,7 +50,7 @@ El profesor solicita: (1) pipeline MLOps/GitOps, (2) documento técnico de opera
 ```mermaid
 flowchart TB
   DEV["Commit en rama proyecto-fase-iii"] --> CI["GitHub Actions / Job CI"]
-  CI --> TEST["Pruebas: etiquetas 72 h, alertas, FinOps, firma y GitOps"]
+  CI --> TEST["Pruebas: etiquetas 72 h, alertas, FinOps, hash SHA-256 y GitOps"]
   TEST --> TRAIN["Generador V2 + Random Forest"]
   TRAIN --> MLF["MLflow: parámetros, 15 métricas, artefactos"]
   MLF --> GATE{"¿Supera gates y hash SHA-256?"}
@@ -97,7 +97,7 @@ flowchart LR
   CI["GitHub Actions"] --> DES
 ```
 
-**Figura 2.** Arquitectura del despliegue Docker de la Fase III. *Las dos API utilizan el mismo binario de modelo firmado, pero almacenamientos SQLite separados.* Esto permite demostrar rollback de **tráfico** tras la caída de un contenedor, **no** rollback entre dos versiones distintas del modelo, migración a PostgreSQL ni alta disponibilidad real.
+**Figura 2.** Arquitectura del despliegue Docker de la Fase III. *Las dos API utilizan el mismo binario de modelo con huella SHA-256 validada, pero almacenamientos SQLite separados.* Esto permite demostrar rollback de **tráfico** tras la caída de un contenedor, **no** rollback entre dos versiones distintas del modelo, migración a PostgreSQL ni alta disponibilidad real.
 
 ### Puertos de demostración local
 
@@ -157,9 +157,11 @@ El job **continuous-integration** de [GitHub Actions](.github/workflows/fase3.ym
 | Máquinas holdout | **12** | Exactamente 12 | PASS |
 | Integridad de artefacto | SHA-256 calculado | Coincide con metadata/manifest | PASS |
 
+**Integridad ≠ firma digital:** SHA-256 permite comprobar que el archivo no cambió respecto al manifest. **No se implementó una firma criptográfica autenticada con clave privada**, ni cadena de confianza de una registry. Esta distinción forma parte de la auditoría de seguridad.
+
 **Criterio técnico:** estos límites son políticas académicas explícitas diseñadas para el experimento, no umbrales regulatorios ni garantías industriales. El [código de gating](fase3/release.py) hace fallar la ejecución si se degrada una métrica o se modifica el binario. Las [pruebas unitarias](fase3/test_phase3.py) verifican también que un release degradado o manipulado sea rechazado.
 
-### 3.5 MLflow y firma del artefacto
+### 3.5 MLflow e integridad SHA-256 del artefacto
 
 <!-- F3-RELEASE-START -->
 <details>
@@ -450,7 +452,7 @@ Para discutir valor de negocio se plantea un ejemplo **hipotético**: costo de p
 | **Fase II** | ¿Puede operar un servicio de predicción integral? | Dataset/modelo sintético, FastAPI, persistencia, Docker, frontend y pruebas |
 | **Actividad 8** | ¿Cómo sabemos si servicio y modelo se degradan? | Baseline, SLO, seis reglas, MLflow, PSI, dos incidentes con runbooks |
 | **Actividad 9** | ¿Cómo crecer sin perder costo, fiabilidad y gobernanza? | Benchmark de carga, rediseño AWS simulado, FinOps, fairness A/B/C |
-| **Fase III** | ¿Podemos construir, probar, liberar y recuperar versiones de modo controlado? | **CI/CD funcional** con release firmado, gate, Docker, smoke, promociones, 502 real, rollback y auditoría |
+| **Fase III** | ¿Podemos construir, probar, liberar y recuperar versiones de modo controlado? | **CI/CD funcional** con release con hash SHA-256 verificado, gate, Docker, smoke, promociones, 502 real, rollback y auditoría |
 
 **Aprendizaje transversal:** un buen valor de ROC-AUC no es suficiente para justificar una adopción industrial. La IA debe ser **reproducible, observable, económicamente evaluable, operable y gobernada**. Ese es el principal resultado de gestión del proyecto.
 
@@ -468,7 +470,7 @@ fase3/
   router.py                     # forwarding HTTP según slot
   smoke.py                      # salud, inferencia, modelo, SQLite
   ops_audit.py                  # auditoría de servicio y routing
-  test_phase3.py                # pruebas de rechazo, firma, estado
+  test_phase3.py                # pruebas de rechazo, hash, estado
   compose.yaml                  # 2 API + router + dashboard
   docker/                       # imágenes con artefacto ya evaluado
   gitops/desired-state.json     # estado declarativo final publicado
