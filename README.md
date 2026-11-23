@@ -27,7 +27,7 @@
 | Recall por ventana | **78.28%** | Ventanas anteriores a falla detectadas; no equivale a recall por evento |
 | Recall por evento | **88.57% (31/35)** | Fallas evaluables con al menos una alerta previa en el horizonte |
 | Despliegue CI/CD | **2 jobs aprobados** | Modelo validado en MLflow y Docker ejecutado en un runner |
-| Recuperación GitOps | **2 promociones, 1 rollback** | Fallo HTTP 502 real y recuperación de tráfico a `stable` |
+| Recuperación GitOps | **2 promociones y 1 rollback de modelo** | Dos hashes distintos; regresión de latencia medida y retorno a la versión anterior |
 | Auditoría operacional Fase III | **Ver sección 5.3, sincronizada con CI/CD** | Muestra breve del API en CI; no acredita SLA 99% industrial |
 
 **Decisión de producto:** el sistema emite estimaciones y recomendaciones de **revisión humana**; nunca detiene ni interviene equipos físicos por su cuenta.
@@ -51,11 +51,11 @@ flowchart TB
   HEALTH --> PROM{"¿Candidata aprobada?"}
   PROM -->|No| STOP
   PROM -->|Sí| SWITCH["Enrutador usa slot candidate"]
-  SWITCH --> FAIL["Experimento: detener candidate"]
-  FAIL --> HTTP["Router devuelve HTTP 502 medido"]
-  HTTP --> BACK["GitOps cambia ruta a stable"]
+  SWITCH --> FAIL["Inyección controlada de demora solo en candidate"]
+  FAIL --> HTTP["Regresión HTTP p95 > 500 ms observada"]
+  HTTP --> BACK["GitOps revierte al hash del modelo stable"]
   BACK --> CHECK["Predicciones y persistencia recuperadas"]
-  CHECK --> RESTORE["Restaurar candidate + nuevos smoke"]
+  CHECK --> RESTORE["Corregir demora en candidate + nuevos smoke"]
   RESTORE --> FIN["Nueva promoción + estado deseado en Git"]
 ```
 
@@ -86,7 +86,7 @@ flowchart LR
   CI["GitHub Actions"] --> DES
 ```
 
-**Figura 2.** Arquitectura del despliegue Docker de la Fase III. *Las dos API utilizan el mismo binario de modelo con huella SHA-256 validada, pero almacenamientos SQLite separados.* Esto permite demostrar rollback de **tráfico** tras la caída de un contenedor, **no** rollback entre dos versiones distintas del modelo, migración a PostgreSQL ni alta disponibilidad real.
+**Figura 2.** Arquitectura del despliegue Docker. *Stable utiliza Random Forest con 130 árboles; candidate emplea una versión distinta de 135 árboles, cada una con SHA-256 propio y SQLite independiente.* El rollback recupera el modelo anterior mediante enrutamiento, pero **no** migra el historial SQLite ni prueba alta disponibilidad multizona.
 
 ### Puertos de demostración local
 
@@ -97,7 +97,7 @@ flowchart LR
 | Router GitOps | http://localhost:8010/health | Solo loopback |
 | Dashboard Streamlit | http://localhost:8510 | Solo loopback |
 
-El [Compose de Fase III](fase3/compose.yaml) inicia cuatro servicios y mantiene deshabilitada por defecto la inyección de fallas de la Actividad 8. El incidente de Fase III se provoca **deteniendo de verdad el contenedor candidato**, no insertando un 502 ficticio en JSON.
+El [Compose de Fase III](fase3/compose.yaml) inicia cuatro servicios. Para demostrar recuperación de **una versión distinta** se introduce intencionalmente latencia en la instancia candidate ya promovida. El router registra solicitudes HTTP 200 cuyo p95 supera 500 ms; el rollback se acepta únicamente con esos resultados y al restaurar el SHA estable. Esta degradación controlada **no representa una caída natural del desempeño predictivo**.
 
 ---
 
@@ -132,7 +132,8 @@ El job **continuous-integration** de [GitHub Actions](.github/workflows/fase3.ym
 3. Entrenamiento reproducible V2, evaluación offline y registro de un run real en MLflow.
 4. Comprobación cruzada de las **15 métricas MLflow** y sus artefactos contra la evaluación del mismo run.
 5. Rechazo si el modelo/metadata no coincide en SHA-256, faltan el horizonte 72 h/holdout 12, o las métricas no alcanzan los límites definidos.
-6. Publicación de un artefacto de release versionado, que consume el job de despliegue —no se entrena silenciosamente otro modelo dentro de Docker—.
+6. Creación de una candidata RF de 135 árboles mediante cinco árboles adicionales, con umbral fijo y evaluación documentada; su hash debe ser diferente del estable y superar los gates.
+7. Publicación de **ambos** artefactos de modelo para el job CD. Las imágenes Docker reciben los binarios ya aprobados; no reentrenan dentro del contenedor.
 
 ### 3.4 Baseline de calidad y gates de promoción
 
@@ -148,7 +149,7 @@ El job **continuous-integration** de [GitHub Actions](.github/workflows/fase3.ym
 
 **Integridad ≠ firma digital:** SHA-256 permite comprobar que el archivo no cambió respecto al manifest. **No se implementó una firma criptográfica autenticada con clave privada**, ni cadena de confianza de una registry. Esta distinción forma parte de la auditoría de seguridad.
 
-**Criterio técnico:** estos límites son políticas académicas explícitas diseñadas para el experimento, no umbrales regulatorios ni garantías industriales. El [código de gating](fase3/release.py) hace fallar la ejecución si se degrada una métrica o se modifica el binario. Las [pruebas unitarias](fase3/test_phase3.py) verifican también que un release degradado o manipulado sea rechazado.
+**Criterio técnico:** estos límites son umbrales definidos para el experimento sintético, no normas regulatorias ni garantías industriales. El segundo modelo mantiene el mismo conjunto de entrenamiento y el mismo umbral fijado por validación, y cambia únicamente el número de árboles (130 → 135). La receta se define antes de revisar los resultados de la candidata. El [código de gating](fase3/release.py) hace fallar la ejecución si se degrada una métrica o se modifica el binario. Las [pruebas unitarias](fase3/test_phase3.py) verifican también que un release degradado o manipulado sea rechazado.
 
 ### 3.5 MLflow e integridad SHA-256 del artefacto
 
@@ -189,22 +190,21 @@ Se comprueban `/health`, `/model/info`, el conjunto de **12 máquinas**, **3 pre
 
 El router lee [`desired-state.json`](fase3/gitops/desired-state.json), por lo que las transiciones de slots producen un cambio observable en el encabezado HTTP `X-Serving-Slot`. El estado final aprobado se conserva en Git junto con la bitácora y los resultados; **Git documenta y controla el estado del experimento, pero no hay un agente GitOps externo observando permanentemente el repositorio**.
 
-### 4.2 Secuencia comprobada por GitHub Actions
+### 4.2 Secuencia de promoción, degradación y rollback
 
-| Paso | Evidencia | Resultado |
+| Etapa | Evidencia técnica | Verificación |
 |---|---|---|
-| 1. Inicialización | [Bitácora GitOps](fase3/evidence/deployment_events.json) | `active_slot=stable` |
-| 2. Prueba de candidata | [Smoke candidate](fase3/evidence/candidate_smoke.json) | 3 predicciones y persistencia PASS |
-| 3. Primera promoción | [Router promovido](fase3/evidence/router_promoted.json) | `active_slot=candidate`, 3 predicciones |
-| 4. Falla controlada | [Fallo HTTP](fase3/evidence/router_failure.json) | **502 observado**, candidata detenida |
-| 5. Rollback de tráfico | [Router restaurado](fase3/evidence/router_restored.json) | `active_slot=stable`; 3 predicciones PASS |
-| 6. Recuperación de candidata | [Smoke candidate](fase3/evidence/candidate_smoke.json) | Contenedor reiniciado, validación PASS |
-| 7. Re-promoción final | [Router final](fase3/evidence/router_final.json) | `active_slot=candidate`; 3 predicciones PASS |
-| 8. Auditoría | [Reporte operativo](fase3/evidence/operations_audit.json) | **2 promociones y 1 rollback** registrados |
+| Inicio | [Desired state](fase3/gitops/desired-state.json) | Stable activo con su versión y SHA |
+| Candidata validada | [Smoke candidate](fase3/evidence/candidate_smoke.json) · [evaluación offline](fase3/evidence/candidate_evaluation.json) | RF 135 árboles, hash distinto, 3 predicciones SQLite |
+| Primera promoción | [Router promovido](fase3/evidence/router_promoted.json) | Respuestas HTTP con SHA candidate |
+| Incidente controlado | [Medición de regresión](fase3/evidence/router_degradation.json) | Solicitudes 2xx reales pero p95 >500 ms |
+| Rollback de versión | [Router restaurado](fase3/evidence/router_restored.json) | Tres predicciones con SHA del modelo stable previo |
+| Reparación y nueva promoción | [Router final](fase3/evidence/router_final.json) | Latencia restaurada y hash candidate |
+| Auditoría de operaciones | [Eventos GitOps](fase3/evidence/deployment_events.json) · [métricas](fase3/evidence/operations_audit.json) | Dos promociones, un rollback entre binarios diferentes |
 
-**Dato técnico destacado:** el fallo se observó realmente como HTTP **502**, no como una fila escrita a mano. [La bitácora de despliegue](fase3/evidence/deployment_events.json) registra los timestamps UTC exactos de las dos promociones y el rollback **de la última ejecución aprobada**. Esas duraciones corresponden al laboratorio; no acreditan un MTTR industrial ni se extrapolan a otro entorno.
+La [bitácora cronológica](fase3/evidence/deployment_events.json) contiene los hashes y tiempos UTC observados; las mediciones son del laboratorio temporal. La degradación se simula añadiendo 700 ms exclusivamente al servicio candidato **después de haber superado los controles previos**. Esta prueba ejercita una regla de SLO operacional y un rollback de versión, no evidencia degradación espontánea de precisión o seguridad industrial.
 
-**Condición de salida:** la ejecución falla si el servicio no arranca, el SHA no coincide, faltan inferencias persistidas, la candidata no puede promocionarse, no se observa HTTP 502 después de detenerla, no se recupera el servicio en `stable` o no se restablece `candidate`.
+**Regla de reversión:** `p95 >500 ms` sobre al menos cinco solicitudes HTTP exitosas en candidata y correlación con su SHA. Tras el cambio, el smoke de restauración debe demostrar que el router entrega el **hash stable diferente**, recupera predicciones y registra sus trazas en SQLite. No se promueve una candidata que falle los controles offline.
 
 ### 4.3 Qué se automatizó y qué no
 
@@ -213,8 +213,8 @@ El router lee [`desired-state.json`](fase3/gitops/desired-state.json), por lo qu
 | CI ante push a la rama de Fase III | Automatizado |
 | Entrenamiento, auditoría MLflow, versionado y gates | Automatizado |
 | Despliegue Docker temporal de 2 API + router + dashboard | Ejecutado |
-| Promoción y rollback del **enrutamiento** | Ejecutado y auditado |
-| Rollback entre **dos modelos distintos** | No demostrado; los dos slots usan el mismo binario |
+| Promoción y rollback entre **dos versiones de modelo** | Ejecutado: dos SHA-256 distintos y router verificado |
+| Reversión ante degradación de latencia en candidata | Medida en HTTP; no representa degradación natural de ROC-AUC |
 | Autoescalado/AWS, persistencia compartida, failover multizona | Solo diseño propuesto en Actividad 9 |
 | Aprobaciones corporativas, seguridad IAM, operatividad 24/7 | Pendiente de un escenario industrial real |
 | Mantenimiento físico automatizado | No permitido en el piloto |
@@ -242,9 +242,9 @@ El router lee [`desired-state.json`](fase3/gitops/desired-state.json), por lo qu
 
 1. Comprobar release/hash, `/health` y el slot en `GET router:8010/health`.
 2. Si candidata está disponible, ejecutar [smoke](fase3/smoke.py) y comparar trazas con `/history`; promocionar **únicamente** después de PASS.
-3. Si el router devuelve 502 por caída de candidata, registrar la solicitud y ejecutar [rollback](fase3/gitops.py) al slot estable.
+3. Si el p95 supera 500 ms con candidata activa, registrar las muestras y el SHA con [degradation_probe.py](fase3/degradation_probe.py) y ejecutar [rollback](fase3/gitops.py) al modelo estable anterior.
 4. Repetir tres predicciones y comprobar que los `trace_id` aparecen en SQLite. Cerrar la incidencia solo tras verificar servicio recuperado.
-5. Investigar logs, recuperar la candidata, repetir gates y promocionar de nuevo; conservar [la bitácora](fase3/evidence/deployment_events.json).
+5. Corregir la regresión de la candidata, repetir pruebas HTTP y promoverla solo después de pasar los controles; conservar la [bitácora de versiones y eventos](fase3/evidence/deployment_events.json).
 6. Si `stable` también falla, **escalar a SRE** y no declarar recuperación. Este laboratorio no prueba restauración de una base de datos común ni disaster recovery.
 
 ### 5.2 Monitoreo de referencia (baseline) y niveles de servicio
@@ -279,9 +279,9 @@ El p95 no sustituye el SLI de oportunidad. Con 12 peticiones, un error consume m
 Estas cifras proceden de [la misma ejecución aprobada](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/45218317927); no son promedios de un servicio permanente. El error 502 se conserva en el [smoke del router](fase3/evidence/router_failure.json), por separado de `/metrics` del backend apagado.
 <!-- F3-OPERATIONS-END -->
 
-[JSON original de auditoría](fase3/evidence/operations_audit.json) · [Fallo observado por el router](fase3/evidence/router_failure.json) · [Comprobación después del rollback](fase3/evidence/router_restored.json).
+[JSON de auditoría](fase3/evidence/operations_audit.json) · [Regresión de latencia observada](fase3/evidence/router_degradation.json) · [Comprobación después del rollback](fase3/evidence/router_restored.json).
 
-**Matiz estadístico:** doce solicitudes de prueba y un único runner no acreditan un SLA de 99% ni un tiempo de recuperación operativo. El error 502 del router **no entra** en el contador `/metrics` del backend cuando el backend está apagado; por ello se conserva en una evidencia independiente. El diseño industrial necesitaría métricas agregadas desde el borde.
+**Matiz estadístico:** las muestras de corta duración y un único runner no acreditan un SLA de 99% ni un tiempo de recuperación operativo. La demora se introdujo en el middleware candidato y se midió desde el router; las métricas del backend no capturan necesariamente el tiempo agregado por ese middleware. La supervisión industrial necesita SLIs medidos en el borde.
 
 ### 5.4 Logs y trazabilidad de una predicción
 
@@ -356,7 +356,7 @@ La brecha TPR máxima es **9.41 puntos porcentuales**. Se recomputaron intervalo
 | Decisión | Justificación cuantitativa | Acción realizada o recomendada |
 |---|---|---|
 | Mantener el modelo V2 evaluado | ROC-AUC 0.9655, recall por evento 88.57%, solo sintético | **Realizado:** release bajo gates, MLflow y SHA |
-| Fortalecer respuesta a fallos HTTP | A8: p95 689 ms durante inyección; F3: router 502 al detener candidate | **Realizado:** runbooks A8 y rollback de enrutamiento F3 |
+| Fortalecer respuesta a degradación del servicio | A8: p95 689 ms; F3: regresión de latencia controlada tras promover candidata | **Realizado:** runbooks, medición HTTP y rollback a la versión estable |
 | Controlar data drift | PSI 10.361 frente al umbral 0.20 | **Realizado:** cuarentena y medición de recuperación sintética |
 | Dimensionar y controlar costo cloud | HA ARM US$170.65 vs HA x86 US$217.50 hipotéticos | **Propuesto:** pruebas ARM y presupuesto AWS completo |
 | Reducir brecha de recall por tipo | TPR gap 9.41 puntos, 4 máquinas/tipo | **Propuesto:** evaluación con más unidades independientes |
@@ -402,7 +402,7 @@ Para discutir valor de negocio se plantea un ejemplo **hipotético**: costo de p
 - **FastAPI y Streamlit:** separación de inferencia e interfaz; APIs medidas y observables.
 - **MLflow + GitHub Actions:** trazabilidad de parámetros, resultados y releases en un ejercicio reproducible.
 - **SHA-256 + gates:** prevenir que el entorno de staging use un artefacto diferente al evaluado.
-- **Router + dos contenedores:** hacer visible el riesgo de una candidata caída y demostrar recuperación sin declarar HA.
+- **Dos binarios de modelo + router:** demostrar promoción, detección de regresión de latencia y recuperación de un hash anterior sin atribuir alta disponibilidad industrial.
 - **FinOps y responsible AI:** el costo unitario, la calidad por grupos, la privacidad y los SLO deben evaluarse **conjuntamente**, no como métricas aisladas.
 
 ### 7.4 Riesgos estratégicos
@@ -431,7 +431,7 @@ Para discutir valor de negocio se plantea un ejemplo **hipotético**: costo de p
 
 | Etapa | Producto verificable | Criterio de avance |
 |---|---|---|
-| 0. CI/CD académico | Releases, gates, logs, canary, rollback de tráfico | **Completado en Actions** |
+| 0. CI/CD de staging | Dos releases de modelo, gates, canary, degradación y rollback de versión | **Ejecutado en Actions** |
 | 1. Staging real controlado | Backend DB compartida, secretos, TLS, CI de seguridad, despliegue a nube | Revisión técnica y costos aprobados |
 | 2. Datos industriales | Inventario de sensores, calidad, fallas etiquetadas y evaluación temporal externa | Calidad por sitio/tipo, riesgos aceptados |
 | 3. Experimento operativo | Operadores comparan predicción con proceso convencional | Reducción de paros y falsas alarmas medible |
@@ -447,7 +447,7 @@ Para discutir valor de negocio se plantea un ejemplo **hipotético**: costo de p
 | **Fase II** | ¿Puede operar un servicio de predicción integral? | Dataset/modelo sintético, FastAPI, persistencia, Docker, frontend y pruebas |
 | **Actividad 8** | ¿Cómo sabemos si servicio y modelo se degradan? | Baseline, SLO, seis reglas, MLflow, PSI, dos incidentes con runbooks |
 | **Actividad 9** | ¿Cómo crecer sin perder costo, fiabilidad y gobernanza? | Benchmark de carga, rediseño AWS simulado, FinOps, fairness A/B/C |
-| **Fase III** | ¿Podemos construir, probar, liberar y recuperar versiones de modo controlado? | **CI/CD funcional** con release con hash SHA-256 verificado, gate, Docker, smoke, promociones, 502 real, rollback y auditoría |
+| **Fase III** | ¿Podemos construir, probar, liberar y recuperar versiones de modo controlado? | **CI/CD funcional** con RF 130/135, SHA-256, MLflow, Docker, regresión p95 controlada, rollback entre versiones y auditoría |
 
 **Implicación para la adopción:** un buen valor de ROC-AUC no es suficiente para justificar una adopción industrial. La IA debe ser **reproducible, observable, económicamente evaluable, operable y gobernada**. Ese es el principal resultado de gestión del proyecto.
 
@@ -460,7 +460,10 @@ Para discutir valor de negocio se plantea un ejemplo **hipotético**: costo de p
 ```text
 .github/workflows/fase3.yml      # CI + CD GitOps simulado
 fase3/
-  release.py                    # gates de calidad y huella del modelo
+  release.py                    # gates de calidad e integridad del modelo
+  model_versions.py             # stable RF130 + candidate RF135
+  degradation_probe.py          # medición HTTP de regresión p95
+  visualizations.py             # tres gráficas SVG con datos del run
   gitops.py                     # desired state / promote / rollback
   router.py                     # forwarding HTTP según slot
   smoke.py                      # salud, inferencia, modelo, SQLite
@@ -488,19 +491,20 @@ python -m pytest actividad8/test_activity8.py actividad9/test_activity9.py fase3
 python -m actividad8.train_v2 --mlflow
 python -m actividad8.mlflow_audit
 python -m fase3.release
+python -m fase3.model_versions
 
 python -m fase3.gitops init
 docker compose -f fase3/compose.yaml up --build -d --wait
-python -m fase3.smoke --url http://127.0.0.1:8008 --out fase3/evidence/stable_local.json
-python -m fase3.smoke --url http://127.0.0.1:8009 --out fase3/evidence/candidate_local.json
+python -m fase3.smoke --url http://127.0.0.1:8008 --expected-model stable --out fase3/evidence/stable_local.json
+python -m fase3.smoke --url http://127.0.0.1:8009 --expected-model candidate --out fase3/evidence/candidate_local.json
 python -m fase3.gitops promote --validation fase3/evidence/candidate_local.json
-python -m fase3.smoke --url http://127.0.0.1:8010 --expected-slot candidate --out fase3/evidence/router_local.json
+python -m fase3.smoke --url http://127.0.0.1:8010 --expected-model candidate --expected-slot candidate --out fase3/evidence/router_local.json
 
 # Al finalizar:
 docker compose -f fase3/compose.yaml down
 ```
 
-Para repetir **el rollback** debe detenerse el contenedor `api-candidate`, verificar el HTTP 502 con `--expect-failure`, ejecutar `gitops rollback` con la evidencia de ese fallo y repetir la prueba del router. El procedimiento exacto y automático está en [.github/workflows/fase3.yml](.github/workflows/fase3.yml). **Evitar utilizar comandos de inyección fuera del laboratorio**.
+Para reproducir **el rollback de modelo**, tras la primera promoción en Docker se crea el flag local `/state/latency_degradation.flag` dentro de `api-candidate`, se ejecuta `fase3.degradation_probe` y luego `fase3.gitops rollback --failure fase3/evidence/router_degradation.json`. Se comprueba con `smoke --expected-model stable --expected-slot stable`. El flujo completo está automatizado en el [workflow CI/CD](.github/workflows/fase3.yml) y la inyección se limita al laboratorio sin conexión industrial.
 
 ### Trazabilidad de evidencias verificables
 
@@ -509,7 +513,7 @@ Para repetir **el rollback** debe detenerse el contenedor `api-candidate`, verif
 | Fuente y tests de CI/CD | [Workflow](.github/workflows/fase3.yml) · [pruebas](fase3/test_phase3.py) |
 | Modelo versionado y auditado | [Manifest](fase3/evidence/release_manifest.json) · [MLflow](actividad8/mlflow_audit.py) |
 | Infraestructura declarativa | [Compose](fase3/compose.yaml) · [Desired state](fase3/gitops/desired-state.json) |
-| Promoción, falla y rollback | [Eventos](fase3/evidence/deployment_events.json) · [HTTP 502](fase3/evidence/router_failure.json) · [recuperación](fase3/evidence/router_restored.json) |
+| Promoción, degradación y rollback de modelo | [Eventos](fase3/evidence/deployment_events.json) · [p95 observado](fase3/evidence/router_degradation.json) · [recuperación](fase3/evidence/router_restored.json) |
 | Operación y métricas | [Auditoría F3](fase3/evidence/operations_audit.json) · [historial A8](actividad8/evidence/incidents.json) |
 | Evidencia visual del dashboard | [Capturas A8](actividad8/docs/EVIDENCIAS_VISUALES.md) |
 | MLflow de etapa previa | [Capturas MLflow A8](actividad8/docs/MLFLOW_EVIDENCIA.md) |
@@ -525,11 +529,11 @@ Para repetir **el rollback** debe detenerse el contenedor `api-candidate`, verif
 **Limitaciones materialmente importantes:**
 
 1. Solo existen **datos sintéticos**, sin rendimiento validado en máquinas reales.
-2. `stable` y `candidate` usan el **mismo modelo**; está validado el rollback de **ruta**, no la reversión de una versión ML diferente.
+2. `stable` y `candidate` usan **modelos diferentes** y la reversión restaura el hash stable mediante el router. No reproduce una degradación espontánea del algoritmo: la regresión de latencia fue provocada para ensayar el mecanismo de recuperación.
 3. El estado GitOps se genera y publica desde el job; **no** existe un agente externo que sondee Git continuamente ni un despliegue permanente de nube.
 4. El runner se destruye al finalizar: los cuatro servicios dejan de estar disponibles, salvo su código/evidencias.
 5. Cada API tiene **SQLite independiente**; las predicciones no se replican entre slots.
-6. Las doce solicitudes observadas por el backend en esta auditoría no demuestran un SLA mensual, y el router 502 debe contarse separadamente si se evalúa disponibilidad desde el usuario.
+6. Las mediciones HTTP de corta duración no demuestran un SLA mensual. La latencia introducida por el middleware candidato se mide desde el router y no equivale al tiempo de inferencia registrado por el backend.
 7. La estimación de costos de A9 no incluye TCO completo; la fairness de A9 se evaluó con cuatro máquinas por tipo.
 8. La aplicación no implementa aún autenticación empresarial, gestión de secretos, auditoría centralizada, backups automáticos o pruebas de desastre de una infraestructura real.
 
@@ -540,7 +544,7 @@ Para repetir **el rollback** debe detenerse el contenedor `api-candidate`, verif
 ## 12. Conclusiones estratégicas
 
 1. **Valor técnico:** el proyecto superó la etapa de entrenamiento aislado y demuestra un proceso controlado para generar y ejecutar versiones evaluadas de un modelo.
-2. **Confiabilidad:** el laboratorio demuestra que una falla de servicio puede observarse y revertirse mediante cambio de ruta; el reto industrial restante es mantener consistencia de datos y realizar rollback entre modelos/versiones distintos.
+2. **Confiabilidad:** el laboratorio demuestra la recuperación de una versión previa del modelo ante una regresión de servicio. La siguiente dificultad industrial es mantener consistencia de datos y habilitar despliegue resiliente con estado compartido.
 3. **Gobernanza:** el hash, la trazabilidad MLflow, los tests de etiquetas y gates hacen auditable qué se entrenó y qué se ejecutó. Sin aprobación y datos reales no constituyen un certificado de calidad.
 4. **Costos y escalabilidad:** la arquitectura propuesta debe contrastar costo total con SLO real. Los escenarios FinOps son herramientas de decisión, no presupuestos confirmados.
 5. **Decisión de negocio:** antes de operar en una planta, la siguiente inversión prioritaria debe enfocarse en calidad de datos industriales, seguridad, persistencia robusta, ensayos de falla y una prueba controlada de reducción neta de paros.
