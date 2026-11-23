@@ -8,6 +8,12 @@ on:
       - '!fase3/evidence/**'
       - '!fase3/gitops/desired-state.json'
       - '.github/workflows/fase3.yml'
+      - 'actividad8/*.py'
+      - 'actividad8/requirements*.txt'
+      - 'actividad8/docker/**'
+      - 'actividad9/*.py'
+      - 'actividad9/evidence/finops_model.json'
+      - 'actividad9/evidence/fairness_machine_types.json'
       - 'README.md'
   workflow_dispatch:
 
