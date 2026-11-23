@@ -1,0 +1,176 @@
+name: Fase III - CI, MLOps, GitOps y despliegue simulado verificable
+on:
+  push:
+    branches: [proyecto-fase-iii]
+    paths:
+      - 'fase3/**'
+      - '!fase3/runtime/**'
+      - '!fase3/evidence/**'
+      - '!fase3/gitops/desired-state.json'
+      - '.github/workflows/fase3.yml'
+      - 'README.md'
+  workflow_dispatch:
+
+concurrency:
+  group: fase3-pipeline
+  cancel-in-progress: true
+
+jobs:
+  continuous-integration:
+    name: CI - pruebas, entrenamiento, MLflow, versionado y quality gates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: actividad8/requirements.txt
+      - name: Instalar dependencias reproducibles
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r actividad8/requirements.txt
+      - name: Unit tests de datos, alertas, FinOps, GitOps y gates de release
+        run: python -m pytest actividad8/test_activity8.py actividad9/test_activity9.py fase3/test_phase3.py -q -v
+      - name: Reconstruir dataset 100% sintético y entrenar V2 con MLflow
+        run: python -m actividad8.train_v2 --mlflow
+      - name: Auditar los 15 indicadores y artefactos reales de MLflow
+        run: python -m actividad8.mlflow_audit
+      - name: Crear release versionada y rechazar métricas bajo umbral o hash alterado
+        run: |
+          python -m fase3.release
+          python - <<'PY'
+          from fase3.release import verify_manifest
+          x=verify_manifest()
+          assert x["industrial_release_authorized"] is False
+          assert len(x["quality_gates"])==4
+          print("CI QUALITY GATE: PASS:",x["version"])
+          PY
+      - name: Publicar artefacto versionado para despliegue CD
+        uses: actions/upload-artifact@v4
+        with:
+          name: fase3-release-candidate-${{ github.run_id }}
+          path: |
+            actividad8/artifacts/
+            actividad8/results/
+            actividad8/evidence/mlflow_validation.json
+            actividad8/evidence/mlflow_validation.md
+            fase3/evidence/release_manifest.json
+          if-no-files-found: error
+          retention-days: 30
+
+  continuous-deployment:
+    name: CD GitOps - Docker, canary, promote, fallo y rollback HTTP
+    needs: continuous-integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Recuperar EXACTAMENTE el modelo aprobado en CI
+        uses: actions/download-artifact@v4
+        with:
+          name: fase3-release-candidate-${{ github.run_id }}
+          path: .
+      - name: Validar integridad y contexto antes de desplegar
+        run: |
+          python -m pip install requests==2.32.5
+          python - <<'PY'
+          from fase3.release import verify_manifest
+          from pathlib import Path
+          r=verify_manifest()
+          assert Path("actividad8/artifacts/model_v2.joblib").stat().st_size>10000
+          print("DEPLOY ARTIFACT SHA VERIFIED:",r["model_sha256"])
+          PY
+          docker compose -f fase3/compose.yaml config -q
+      - name: Definir estado GitOps inicial (slot stable)
+        run: python -m fase3.gitops init
+      - name: Desplegar realmente dos API, router y dashboard en Docker del runner
+        run: |
+          docker compose -f fase3/compose.yaml up --build -d --wait
+          docker compose -f fase3/compose.yaml ps
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8510/_stcore/health > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          echo 'Dashboard sin healthcheck'; exit 1
+      - name: Smoke inicial, candidata y rutas estables (HTTP y SQLite reales)
+        run: |
+          python -m fase3.smoke --url http://127.0.0.1:8008 --out fase3/evidence/stable_smoke.json
+          python -m fase3.smoke --url http://127.0.0.1:8009 --out fase3/evidence/candidate_smoke.json
+          python -m fase3.smoke --url http://127.0.0.1:8010 --expected-slot stable --out fase3/evidence/router_initial.json
+      - name: Promocionar candidata solo después de gate HTTP y firma
+        run: |
+          python -m fase3.gitops promote --validation fase3/evidence/candidate_smoke.json
+          python -m fase3.smoke --url http://127.0.0.1:8010 --expected-slot candidate --out fase3/evidence/router_promoted.json
+      - name: Inyectar caída real del contenedor candidato y observar HTTP 502
+        run: |
+          docker compose -f fase3/compose.yaml stop api-candidate
+          python -m fase3.smoke --url http://127.0.0.1:8010 --out fase3/evidence/router_failure.json --expect-failure
+      - name: Rollback verificable de tráfico a stable
+        run: |
+          python -m fase3.gitops rollback --failure fase3/evidence/router_failure.json
+          python -m fase3.smoke --url http://127.0.0.1:8010 --expected-slot stable --out fase3/evidence/router_restored.json
+      - name: Restaurar candidata y promover tras recuperar pruebas
+        run: |
+          docker compose -f fase3/compose.yaml start api-candidate
+          ready=0
+          for i in $(seq 1 50); do
+            if curl -fsS http://127.0.0.1:8009/health >/dev/null; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" -eq 1
+          python -m fase3.smoke --url http://127.0.0.1:8009 --out fase3/evidence/candidate_smoke.json
+          python -m fase3.gitops promote --validation fase3/evidence/candidate_smoke.json
+          python -m fase3.smoke --url http://127.0.0.1:8010 --expected-slot candidate --out fase3/evidence/router_final.json
+      - name: Auditar operación, métricas y registro completo de decisiones
+        run: |
+          python -m fase3.ops_audit
+          cp fase3/runtime/desired-state.json fase3/gitops/desired-state.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          e=json.loads(Path("fase3/evidence/deployment_events.json").read_text())
+          assert [x["type"] for x in e["events"]].count("PROMOTE")==2
+          assert [x["type"] for x in e["events"]].count("ROLLBACK")==1
+          assert e["state"]["active_slot"]=="candidate"
+          print("GITOPS CD: PROMOTE -> 502 -> ROLLBACK -> PROMOTE: PASS")
+          PY
+      - name: Capturar evidencia técnica del despliegue
+        if: always()
+        run: |
+          mkdir -p fase3/evidence
+          docker compose -f fase3/compose.yaml ps --format json > fase3/evidence/compose_status.json || true
+          docker compose -f fase3/compose.yaml logs --no-color > fase3/evidence/containers.log || true
+      - name: Versionar estado deseado, auditoría y resultados en GitHub
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin proyecto-fase-iii
+          git reset --mixed FETCH_HEAD
+          git add fase3/gitops/desired-state.json fase3/evidence/
+          if git diff --cached --quiet; then
+            echo 'Evidencia ya publicada'; exit 0
+          fi
+          git commit -m 'evidence(fase3): despliegue canary, rollback y métricas verificadas [skip ci]'
+          git push origin HEAD:proyecto-fase-iii
+      - name: Conservar artefactos y bitácoras para auditoría
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fase3-cd-evidencia-${{ github.run_id }}
+          path: |
+            fase3/evidence/
+            fase3/gitops/desired-state.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Apagar los contenedores del entorno efímero
+        if: always()
+        run: docker compose -f fase3/compose.yaml down || true
