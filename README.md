@@ -39,7 +39,7 @@ El profesor solicita: (1) pipeline MLOps/GitOps, (2) documento técnico de opera
 | Recall por evento | **88.57% (31/35)** | Fallas evaluables con al menos una alerta previa en el horizonte |
 | Despliegue CI/CD | **2 jobs aprobados** | Modelo validado en MLflow y Docker ejecutado en un runner |
 | Recuperación GitOps | **2 promociones, 1 rollback** | Fallo HTTP 502 real y recuperación de tráfico a `stable` |
-| Auditoría operacional Fase III | **12 solicitudes; p95 = 43.411 ms** | Muestra breve del API en CI; no acredita SLA 99% industrial |
+| Auditoría operacional Fase III | **Ver mediciones sincronizadas en §5.3** | Muestra breve del API en CI; no acredita SLA 99% industrial |
 
 **Decisión de producto:** el sistema emite estimaciones y recomendaciones de **revisión humana**; nunca detiene ni interviene equipos físicos por su cuenta.
 
@@ -213,7 +213,7 @@ El router lee [`desired-state.json`](fase3/gitops/desired-state.json), por lo qu
 | 7. Re-promoción final | [Router final](fase3/evidence/router_final.json) | `active_slot=candidate`; 3 predicciones PASS |
 | 8. Auditoría | [Reporte operativo](fase3/evidence/operations_audit.json) | **2 promociones y 1 rollback** registrados |
 
-**Dato técnico destacado:** el fallo se observó realmente como HTTP **502**, no como una fila escrita a mano. [Los eventos](fase3/evidence/deployment_events.json) registran la primera promoción a las 16:24:10 UTC, el rollback a las 16:24:12 UTC y la nueva promoción a las 16:24:15 UTC del 23 de noviembre de 2026. Son timestamps de **ejecución del laboratorio**; no equivalen al MTTR de una planta ni se extrapolan a otro entorno.
+**Dato técnico destacado:** el fallo se observó realmente como HTTP **502**, no como una fila escrita a mano. [La bitácora de despliegue](fase3/evidence/deployment_events.json) registra los timestamps UTC exactos de las dos promociones y el rollback **de la última ejecución aprobada**. Esas duraciones corresponden al laboratorio; no acreditan un MTTR industrial ni se extrapolan a otro entorno.
 
 **Condición de salida:** la ejecución falla si el servicio no arranca, el SHA no coincide, faltan inferencias persistidas, la candidata no puede promocionarse, no se observa HTTP 502 después de detenerla, no se recupera el servicio en `stable` o no se restablece `candidate`.
 
@@ -302,7 +302,7 @@ Cada `POST /predict` genera `trace_id`, duración, estatus, identificador de má
 
 ![Dashboard — estado del modelo y API](actividad8/evidence/screenshots/Dashboard_resumen.png)
 
-**Figura 4.** Interfaz real capturada en la Actividad 8 (vista ilustrativa del mismo stack). En Fase III el dashboard se vuelve a levantar automáticamente, pero la imagen no pretende ser una captura específica del job #45215668864.
+**Figura 4.** Interfaz real capturada en la Actividad 8 (vista ilustrativa del mismo stack). En Fase III el dashboard se vuelve a levantar automáticamente, pero la imagen no pretende ser una captura específica del último job de Fase III.
 
 ---
 
