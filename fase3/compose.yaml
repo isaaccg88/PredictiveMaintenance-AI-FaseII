@@ -1,0 +1,66 @@
+name: predictive-maintenance-fase3
+services:
+  api-stable:
+    build:
+      context: ..
+      dockerfile: fase3/docker/Dockerfile.api
+    ports: ["127.0.0.1:8008:8008"]
+    environment:
+      ACT8_RUNTIME: /state
+      LAB_MODE: "0"
+    volumes:
+      - stable_db:/state
+    healthcheck:
+      test: ["CMD","python","-c","import urllib.request; urllib.request.urlopen('http://127.0.0.1:8008/health', timeout=5)"]
+      interval: 8s
+      timeout: 5s
+      retries: 12
+      start_period: 35s
+  api-candidate:
+    build:
+      context: ..
+      dockerfile: fase3/docker/Dockerfile.api
+    ports: ["127.0.0.1:8009:8008"]
+    environment:
+      ACT8_RUNTIME: /state
+      LAB_MODE: "0"
+    volumes:
+      - candidate_db:/state
+    healthcheck:
+      test: ["CMD","python","-c","import urllib.request; urllib.request.urlopen('http://127.0.0.1:8008/health', timeout=5)"]
+      interval: 8s
+      timeout: 5s
+      retries: 12
+      start_period: 35s
+  router:
+    build:
+      context: ..
+      dockerfile: fase3/docker/Dockerfile.router
+    ports: ["127.0.0.1:8010:8010"]
+    volumes:
+      - ./runtime:/state:ro
+    depends_on:
+      api-stable:
+        condition: service_healthy
+      api-candidate:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD","python","-c","import urllib.request; urllib.request.urlopen('http://127.0.0.1:8010/health', timeout=5)"]
+      interval: 8s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+  dashboard:
+    build:
+      context: ..
+      dockerfile: fase3/docker/Dockerfile.dashboard
+    ports: ["127.0.0.1:8510:8510"]
+    environment:
+      ACT8_API: http://router:8010
+      PYTHONPATH: /workspace
+    depends_on:
+      router:
+        condition: service_healthy
+volumes:
+  stable_db:
+  candidate_db:
