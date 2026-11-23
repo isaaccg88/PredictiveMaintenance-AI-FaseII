@@ -134,6 +134,7 @@ jobs:
         run: |
           python -m fase3.ops_audit
           cp fase3/runtime/desired-state.json fase3/gitops/desired-state.json
+          python -m fase3.update_readme
           python - <<'PY'
           import json
           from pathlib import Path
@@ -155,7 +156,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git fetch origin proyecto-fase-iii
           git reset --mixed FETCH_HEAD
-          git add fase3/gitops/desired-state.json fase3/evidence/
+          git add README.md fase3/gitops/desired-state.json fase3/evidence/
           if git diff --cached --quiet; then
             echo 'Evidencia ya publicada'; exit 0
           fi
