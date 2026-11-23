@@ -8,18 +8,7 @@
 
 > **Alcance comprobado:** sistema académico reproducible con máquinas, fallas y sensores **100% sintéticos**. El CI/CD ejecuta realmente entrenamiento, MLflow, validaciones y un despliegue Docker temporal en GitHub Actions. **No existe despliegue en una fábrica ni en AWS, servicio permanente o mantenimiento físico automático.** GitOps se demuestra mediante estado declarativo, enrutamiento en vivo y rollback en el runner; no constituye un controlador cloud persistente. Las decisiones de mantenimiento y promoción a un entorno real corresponden a personas autorizadas.
 
-## Guía de lectura y correspondencia con la entrega
-
-El profesor solicita: (1) pipeline MLOps/GitOps, (2) documento técnico de operación, (3) portfolio técnico-estratégico y (4) simulación de entrevista. **Los primeros tres están integrados en este README con enlaces a código y evidencia ejecutada. La entrevista oral/video se realizará después y permanece expresamente pendiente.** Esta fase se presenta mediante GitHub: no se genera ZIP ni PDF.
-
-| Criterio de rúbrica (25 puntos c/u) | Secciones donde se demuestra | Estado |
-|---|---|---|
-| **1. Pipeline de IA (MLOps/GitOps)**: integración, pruebas, versionado, despliegue | 2–5, 10; [workflow reproducible](.github/workflows/fase3.yml) y [últimas ejecuciones](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/fase3.yml) | **Implementado y ejecutado** en staging efímero |
-| **2. Monitoreo, auditoría y optimización**: indicadores y mejora sustentada | 6–8; [auditoría operacional](fase3/evidence/operations_audit.json), [A8](actividad8/evidence/incidents.json), [A9](actividad9/evidence/load_benchmark.json) | **Medido** en piloto sintético y laboratorio |
-| **3. Portfolio técnico-estratégico**: problema, arquitectura, valor, resultados, decisiones | 1, 2, 7–9, 11–12; imágenes, tablas y trazas vinculadas | **Documentado**, sin prometer impacto industrial no medido |
-| **4. Presentación y preparación profesional**: defensa técnica y gerencial | 13 (preguntas, respuestas y narrativa) | **Preparación realizada; video/entrevista pendiente** |
-
-**Referencia académica:** [Fase II / proyecto original](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/tree/main) · [Actividad 8 — Observabilidad](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/tree/actividad8-v2-observabilidad) · [Actividad 9 — FinOps y gobernanza](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/tree/actividad9-escalabilidad-gobernanza). Las ramas previas se conservan sin mezclarlas.
+**Antecedentes técnicos:** [Prototipo Fase II](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/tree/main) · [Observabilidad e incidentes](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/tree/actividad8-v2-observabilidad) · [Escalabilidad, FinOps y gobernanza](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/tree/actividad9-escalabilidad-gobernanza). Cada etapa conserva sus artefactos y su trazabilidad de versiones.
 
 ---
 
@@ -31,7 +20,7 @@ El profesor solicita: (1) pipeline MLOps/GitOps, (2) documento técnico de opera
 
 **Contribución de Fase III:** cerrar el ciclo técnico demostrando una **línea automatizada de código/datos → entrenamiento → pruebas → MLflow → modelo con huella SHA-256 validada → despliegue de candidata → promoción → detección de fallo → rollback → recuperación auditada**.
 
-| Indicador principal | Resultado comprobado | Qué demuestra y qué NO |
+| Indicador principal | Resultado comprobado | Interpretación y alcance |
 |---|---:|---|
 | ROC-AUC de piloto V2 | **0.9655** | Capacidad discriminativa en generador sintético V2; no generalización industrial |
 | Precision del piloto | **72.38%** | De cada ventana marcada positiva, proporción verdaderamente positiva en el holdout |
@@ -39,7 +28,7 @@ El profesor solicita: (1) pipeline MLOps/GitOps, (2) documento técnico de opera
 | Recall por evento | **88.57% (31/35)** | Fallas evaluables con al menos una alerta previa en el horizonte |
 | Despliegue CI/CD | **2 jobs aprobados** | Modelo validado en MLflow y Docker ejecutado en un runner |
 | Recuperación GitOps | **2 promociones, 1 rollback** | Fallo HTTP 502 real y recuperación de tráfico a `stable` |
-| Auditoría operacional Fase III | **Ver mediciones sincronizadas en §5.3** | Muestra breve del API en CI; no acredita SLA 99% industrial |
+| Auditoría operacional Fase III | **Ver sección 5.3, sincronizada con CI/CD** | Muestra breve del API en CI; no acredita SLA 99% industrial |
 
 **Decisión de producto:** el sistema emite estimaciones y recomendaciones de **revisión humana**; nunca detiene ni interviene equipos físicos por su cuenta.
 
@@ -234,7 +223,7 @@ El router lee [`desired-state.json`](fase3/gitops/desired-state.json), por lo qu
 
 ---
 
-## 5. Documento técnico de operación y runbooks
+## 5. Operación del sistema, monitoreo y runbooks
 
 ### 5.1 Operación de la solución
 
@@ -375,7 +364,7 @@ La brecha TPR máxima es **9.41 puntos porcentuales**. Se recomputaron intervalo
 
 ---
 
-## 7. Portfolio técnico-estratégico: valor para la empresa
+## 7. Valor de negocio y viabilidad de la solución
 
 ### 7.1 Propuesta de valor
 
@@ -450,7 +439,7 @@ Para discutir valor de negocio se plantea un ejemplo **hipotético**: costo de p
 
 ---
 
-## 9. Portfolio profesional: historia del proyecto y resultados defendibles
+## 9. Evolución técnica y decisiones del proyecto
 
 | Fase / actividad | Pregunta del negocio o tecnología | Lo construido o aprendido |
 |---|---|---|
@@ -460,7 +449,7 @@ Para discutir valor de negocio se plantea un ejemplo **hipotético**: costo de p
 | **Actividad 9** | ¿Cómo crecer sin perder costo, fiabilidad y gobernanza? | Benchmark de carga, rediseño AWS simulado, FinOps, fairness A/B/C |
 | **Fase III** | ¿Podemos construir, probar, liberar y recuperar versiones de modo controlado? | **CI/CD funcional** con release con hash SHA-256 verificado, gate, Docker, smoke, promociones, 502 real, rollback y auditoría |
 
-**Aprendizaje transversal:** un buen valor de ROC-AUC no es suficiente para justificar una adopción industrial. La IA debe ser **reproducible, observable, económicamente evaluable, operable y gobernada**. Ese es el principal resultado de gestión del proyecto.
+**Implicación para la adopción:** un buen valor de ROC-AUC no es suficiente para justificar una adopción industrial. La IA debe ser **reproducible, observable, económicamente evaluable, operable y gobernada**. Ese es el principal resultado de gestión del proyecto.
 
 ---
 
@@ -485,7 +474,7 @@ actividad8/                     # dataset, modelo, MLflow, observabilidad
 actividad9/                     # costos, benchmarking y fairness
 ```
 
-**Forma más sencilla de verificar:** abrir el [workflow de Fase III](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/fase3.yml), elegir una ejecución completada y revisar ambos jobs y sus artefactos. Las evidencias principales también están versionadas en `fase3/evidence/` para no depender exclusivamente de la caducidad de artefactos de Actions.
+**Verificación y reproducibilidad:** el [workflow de Fase III](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/fase3.yml), elegir una ejecución completada y revisar ambos jobs y sus artefactos. Las evidencias principales también están versionadas en `fase3/evidence/` para no depender exclusivamente de la caducidad de artefactos de Actions.
 
 ### Reproducir en Windows (con Git, Python 3.11 y Docker Desktop)
 
@@ -558,67 +547,7 @@ Para repetir **el rollback** debe detenerse el contenedor `api-candidate`, verif
 
 ---
 
-## 13. Preparación de entrevista técnica y gerencial — VIDEO PENDIENTE
-
-**Estado de entrega:** se preparan argumentos y preguntas; **todavía no existe una grabación y no se inventa un enlace**. La simulación oral se realizará posteriormente, conforme a la decisión del estudiante. Esta es la única pieza deliberadamente no ejecutada de la Fase III.
-
-### Narrativa propuesta para presentar el portfolio (8–10 minutos)
-
-| Minutos orientativos | Contenido | Evidencia que se debe mostrar |
-|---|---|---|
-| 0:00–1:00 | Problema de paros no planificados y valor de anticipar 72 h | Resumen ejecutivo y figura 1 |
-| 1:00–2:30 | Arquitectura/modelo, generación y evaluación sin fuga temporal | Tabla de métricas y figura 2 |
-| 2:30–4:30 | MLOps: pruebas, MLflow, release y versionado SHA | GitHub Actions y manifest |
-| 4:30–6:00 | GitOps: candidatura, promoción, 502 real y rollback | JSON del fallo, bitácora y router restaurado |
-| 6:00–7:30 | Monitoreo, PSI, latencia, fairness y costos FinOps | Figuras 5–9 |
-| 7:30–9:00 | Limitaciones, riesgos, próximos pasos y decisión de inversión | Secciones 7, 8 y 11 |
-| 9:00–10:00 | Preguntas y defensa del diseño | Respuestas técnicas y de gestión |
-
-### Banco de preguntas para la futura entrevista
-
-**1. ¿Por qué esta solución necesita IA y no solo reglas de mantenimiento?**  
-Las señales precursoras combinan desgaste, temperatura y vibración con variaciones y falsas anomalías; la IA permite estimar riesgo multivariable. Sin embargo, todavía debe demostrarse que supera un mantenimiento basado en reglas/costos sobre datos industriales.
-
-**2. ¿Qué significa predecir fallas a 72 horas?**  
-La etiqueta mira si hay fallo en las próximas 6–72 h. El algoritmo entrega probabilidad para un snapshot, no la hora exacta de falla.
-
-**3. ¿Cómo evitaste fuga de información?**  
-Las etiquetas se construyen mirando eventos futuros solo al definir el target; las features representan variables presentes/pasadas. Se usa separación temporal, se censura el horizonte incompleto, se ajusta preprocessing solo en entrenamiento y se reserva el piloto de 12 máquinas.
-
-**4. ¿Por qué tienes ROC-AUC 0.9655 y no afirmas que sea listo para industria?**  
-Porque el conjunto está generado con relaciones diseñadas. Es evidencia de la implementación del modelo en ese entorno, no una garantía fuera de distribución ni validación en una fábrica real.
-
-**5. ¿Cómo garantizas que se despliegue exactamente el modelo aprobado?**  
-El job CI calcula SHA-256 y registra métricas y artefactos. El CD descarga el mismo artefacto, verifica su hash antes de Docker y exige que `GET /model/info` exponga el hash esperado.
-
-**6. ¿Es GitOps real?**  
-Es una implementación GitOps **simulada**, con estado deseado versionado y un router que lo lee para realizar cambios efectivos en tráfico. No hay un operador Kubernetes/Argo CD observando Git ni persistencia cloud.
-
-**7. ¿Qué hizo el rollback y qué no hizo?**  
-Tras detener la candidata hubo HTTP 502 real. El estado cambió a stable y se verificaron tres predicciones persistidas. No cambió la versión ML porque ambos slots usan el mismo binario.
-
-**8. ¿Qué sucedería si la versión nueva mejora ROC-AUC pero aumenta latencia?**  
-Los gates actuales se complementan con pruebas de API; antes de producción deben existir límites de p95/oportunidad y costo por predicción sobre carga representativa. Un mejor ROC-AUC no justifica degradar un SLO crítico.
-
-**9. ¿Cómo se distingue data drift de degradación del modelo?**  
-PSI compara distribución de entradas sin etiquetas; una caída de ROC-AUC requiere etiquetas maduras. Un PSI elevado es señal de investigación, no prueba automática de peor precisión.
-
-**10. ¿Cómo estimarías el ROI?**  
-Primero mediría horas de paro efectivamente evitadas y costo horario, restando correctivos/preventivos, falsas alarmas y TCO de IA. El ejemplo numérico del portfolio es sensibilidad hipotética, no retorno demostrado.
-
-**11. ¿Qué te preocuparía más al escalar?**  
-Persistencia compartida, seguridad y trazabilidad del release, presupuesto completo, etiquetas reales y resiliencia entre zonas; hoy los slots tienen SQLite independientes.
-
-**12. ¿Cuál sería tu condición de no-go industrial?**  
-Falta de datos/etiquetas confiables, incumplimiento sostenido de SLO, costos no aprobados, ausencia de rollback de modelo efectivo, incidentes sin responsables o riesgos legales sin mitigar.
-
-### Evidencia oral pendiente
-
-**Video o enlace a simulación:** **PENDIENTE**. Cuando se grabe, se incorporará aquí el enlace y un resumen de la entrevista, sin reemplazar los resultados verificables del código.
-
----
-
-### Referencias técnicas
+## Referencias técnicas
 
 - [GitHub Actions — workflow y ejecuciones de Fase III](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/fase3.yml)
 - [MLflow Tracking](https://mlflow.org/docs/latest/ml/tracking/)
@@ -628,4 +557,4 @@ Falta de datos/etiquetas confiables, incumplimiento sostenido de SLO, costos no 
 - [ISO/IEC 42001](https://www.iso.org/standard/42001)
 - [Ley Federal de Protección de Datos Personales en Posesión de los Particulares — México](https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPDPPP.pdf)
 
-**Sello del proyecto:** evidencia antes que afirmaciones; métricas medibles antes que promesas; supervisión humana ante decisiones industriales.
+**Nota metodológica final:** las métricas, inferencias y decisiones descritas corresponden a un entorno sintético controlado; la adopción industrial requiere validación externa y supervisión humana.
