@@ -1,7 +1,9 @@
-# GitOps — estado deseado versionado
+# GitOps — estado deseado de dos versiones de modelo
 
-El workflow de Fase III publica aquí `desired-state.json` **únicamente si** aprobaron los gates de entrenamiento, pruebas, firma del artefacto, predicción HTTP, persistencia, promoción y rollback de enrutamiento. 
+El pipeline de Fase III materializa el estado declarativo `desired-state.json` después de construir **dos modelos diferentes**, comprobar sus SHA-256, evaluar sus indicadores, desplegar ambos contenedores y registrar un rollback comprobado por solicitudes HTTP reales.
 
-Es una **reconciliación declarativa simulada dentro de un runner efímero**: el router lee el estado deseado y cambia el destino de las solicitudes sin reiniciarse. Se actualiza el manifiesto en Git como evidencia del estado final aprobado; **no es** un operador que observe permanentemente Git, un despliegue cloud, ni un rollback entre dos modelos distintos.
+La versión `stable` contiene Random Forest de 130 árboles y la versión `candidate` contiene 135 árboles entrenados con `warm_start` sobre la misma partición. La candidata puede promoverse solo cuando pasa controles offline y smoke. Una degradación intencional de latencia del servicio candidato permite demostrar que el router vuelve al **SHA del modelo estable anterior** y recupera predicciones válidas.
 
-Para repetir la demostración en local se necesita Docker Desktop y ejecutar el pipeline de entrenamiento, MLflow y los comandos documentados en el README raíz.
+El estado final se conserva en Git como evidencia. La reconciliación ocurre dentro de un runner efímero; no se afirma que exista un operador externo monitorizando Git de forma continua, una infraestructura de producción o un despliegue multizona.
+
+[Leer arquitectura y evidencias verificables](../../README.md#4-gitopscd-despliegue-promoción-incidente-y-recuperación).
