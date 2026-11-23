@@ -1,0 +1,9 @@
+FROM python:3.11-slim
+WORKDIR /workspace
+COPY actividad8/requirements-runtime-api.txt /tmp/requirements-api.txt
+RUN pip install --no-cache-dir -r /tmp/requirements-api.txt
+COPY actividad8 /workspace/actividad8
+ENV PYTHONPATH=/workspace ACT8_RUNTIME=/state LAB_MODE=0
+RUN python -c "from pathlib import Path; import json; p=Path('/workspace/actividad8/artifacts'); assert (p/'model_v2.joblib').stat().st_size>10000; assert json.loads((p/'metadata_v2.json').read_text())['horizon_hours']==72"
+EXPOSE 8008
+CMD ["python","-m","uvicorn","actividad8.service:app","--host","0.0.0.0","--port","8008"]
