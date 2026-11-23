@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "version": "v2c-9fe817b1059c",
+  "model_sha256": "9fe817b1059cae42b38fca17fde2a5cdd452dbef6ccf28d7215be7647f2976c6",
+  "stable_parent_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
+  "model_relative_path": "fase3/build/candidate/model_v2.joblib",
+  "metadata_relative_path": "fase3/build/candidate/metadata_v2.json",
+  "synthetic": true,
+  "horizon_hours": 72,
+  "variant": "RandomForest_135_trees_warm_start",
+  "quality_gates": {
+    "precision": {
+      "actual": 0.7238493723849372,
+      "minimum": 0.7,
+      "passed": true
+    },
+    "recall": {
+      "actual": 0.7828054298642534,
+      "minimum": 0.75,
+      "passed": true
+    },
+    "roc_auc": {
+      "actual": 0.9657722886743727,
+      "minimum": 0.95,
+      "passed": true
+    },
+    "event_recall": {
+      "actual": 0.8857142857142857,
+      "minimum": 0.85,
+      "passed": true
+    }
+  },
+  "candidate_evaluation": "fase3/evidence/candidate_evaluation.json",
+  "industrial_release_authorized": false,
+  "approval_scope": "academic_staging_only",
+  "created_at_utc": "2026-11-23T19:19:12.326690+00:00"
+}

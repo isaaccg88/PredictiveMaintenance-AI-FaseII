@@ -2,31 +2,32 @@
   "status": "PASS",
   "endpoint": "http://127.0.0.1:8010",
   "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
+  "model_slot": "stable",
+  "serving_slot": "stable",
   "horizon_hours": 72,
   "synthetic": true,
-  "serving_slot": "stable",
   "successful_predictions": 3,
   "history_rows": 6,
   "predictions": [
     {
       "machine_id": "PM-049",
-      "trace_id": "08d35915-7737-4bc7-bd99-57626df99d60",
+      "trace_id": "63f199d9-b5ba-43f9-99c8-3de2743bf7e6",
       "probability_72h": 0.456846,
-      "elapsed_ms": 49.588
+      "elapsed_ms": 33.382
     },
     {
       "machine_id": "PM-050",
-      "trace_id": "42235ec3-967d-4f51-b46b-74c253796f8e",
+      "trace_id": "ff12e646-567f-451b-ad30-17963fcf3be8",
       "probability_72h": 0.0,
-      "elapsed_ms": 33.583
+      "elapsed_ms": 31.986
     },
     {
       "machine_id": "PM-051",
-      "trace_id": "f50b04df-8ddd-4d6d-90ef-f850f9f5343c",
+      "trace_id": "59abdc4b-00f4-4c20-8ebd-9c35e6198a65",
       "probability_72h": 0.114736,
-      "elapsed_ms": 33.619
+      "elapsed_ms": 30.606
     }
   ],
-  "elapsed_ms": 145.0,
-  "at_utc": "2026-11-23T16:38:06.764818+00:00"
+  "elapsed_ms": 129.51,
+  "at_utc": "2026-11-23T19:20:15.525425+00:00"
 }

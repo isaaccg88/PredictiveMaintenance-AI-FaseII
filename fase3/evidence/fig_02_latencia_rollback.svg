@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1020" height="510" viewBox="0 0 1020 510">
+<rect width="1020" height="510" fill="#fff"/>
+<text x="45" y="55" font-family="Arial,Helvetica,sans-serif" font-size="25" fill="#17334c" text-anchor="start" font-weight="700">Degradación controlada y rollback del modelo</text>
+<text x="45" y="83" font-family="Arial,Helvetica,sans-serif" font-size="13" fill="#51687d" text-anchor="start" font-weight="400">p95 HTTP medido desde el router en GitHub Actions; cuatro momentos del mismo despliegue</text>
+<rect x="60" y="371.90495108215646" width="127.00" height="8.095048917843519" fill="#117b87" rx="3"/>
+<text x="124" y="359.90495108215646" font-family="Arial,Helvetica,sans-serif" font-size="16" fill="#117b87" text-anchor="middle" font-weight="700">30.3 ms</text>
+<text x="124" y="410" font-family="Arial,Helvetica,sans-serif" font-size="13" fill="#17334c" text-anchor="middle" font-weight="400">Candidato sano</text>
+<rect x="301" y="184.16666666666666" width="127.00" height="195.83333333333334" fill="#cb6e42" rx="3"/>
+<text x="365" y="172.16666666666666" font-family="Arial,Helvetica,sans-serif" font-size="16" fill="#cb6e42" text-anchor="middle" font-weight="700">732.2 ms</text>
+<text x="365" y="410" font-family="Arial,Helvetica,sans-serif" font-size="13" fill="#17334c" text-anchor="middle" font-weight="400">Candidato degradado</text>
+<rect x="542" y="372.4029997177379" width="127.00" height="7.597000282262105" fill="#17334c" rx="3"/>
+<text x="606" y="360.4029997177379" font-family="Arial,Helvetica,sans-serif" font-size="16" fill="#17334c" text-anchor="middle" font-weight="700">28.4 ms</text>
+<text x="606" y="410" font-family="Arial,Helvetica,sans-serif" font-size="13" fill="#17334c" text-anchor="middle" font-weight="400">Rollback a estable</text>
+<rect x="783" y="364.4524627368498" width="127.00" height="15.54753726315023" fill="#117b87" rx="3"/>
+<text x="847" y="352.4524627368498" font-family="Arial,Helvetica,sans-serif" font-size="16" fill="#117b87" text-anchor="middle" font-weight="700">58.1 ms</text>
+<text x="847" y="410" font-family="Arial,Helvetica,sans-serif" font-size="13" fill="#17334c" text-anchor="middle" font-weight="400">Candidato recuperado</text>
+<line x1="40" y1="246.3" x2="985" y2="246.3" stroke="#cb6e42" stroke-dasharray="7,6" stroke-width="1.6"/>
+<text x="45" y="238.26694710772395" font-family="Arial,Helvetica,sans-serif" font-size="12" fill="#cb6e42" text-anchor="start" font-weight="400">Umbral de 500 ms</text>
+<text x="45" y="484" font-family="Arial,Helvetica,sans-serif" font-size="12" fill="#51687d" text-anchor="start" font-weight="400">El deterioro es una inyección de latencia en candidate, no una caída natural de ROC-AUC.</text>
+</svg>

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1020" height="500" viewBox="0 0 1020 500">
+<rect width="1020" height="500" fill="#fff"/>
+<text x="45" y="55" font-family="Arial,Helvetica,sans-serif" font-size="25" fill="#17334c" text-anchor="start" font-weight="700">Registro de promoción y recuperación GitOps</text>
+<text x="45" y="83" font-family="Arial,Helvetica,sans-serif" font-size="13" fill="#51687d" text-anchor="start" font-weight="400">Eventos versionados en Git y comprobados con respuestas HTTP y huellas SHA-256</text>
+<rect x="115" y="160" width="175.00" height="64" fill="#17334c" rx="3"/>
+<text x="202" y="188" font-family="Arial,Helvetica,sans-serif" font-size="15" fill="#fff" text-anchor="middle" font-weight="700">INITIALIZE</text>
+<text x="202" y="210" font-family="Arial,Helvetica,sans-serif" font-size="13" fill="#fff" text-anchor="middle" font-weight="400">stable</text>
+<text x="202" y="259" font-family="Arial,Helvetica,sans-serif" font-size="12" fill="#17334c" text-anchor="middle" font-weight="400">v2-849ad06d182b</text>
+<text x="202" y="279" font-family="Arial,Helvetica,sans-serif" font-size="12" fill="#51687d" text-anchor="middle" font-weight="400">849ad06d182b…</text>
+<text x="202" y="310" font-family="Arial,Helvetica,sans-serif" font-size="11" fill="#51687d" text-anchor="middle" font-weight="400">19:19:29.790 UTC</text>
+<path d="M 295 192 L 342 192" stroke="#17334c" stroke-width="2" fill="none"/>
+<rect x="350" y="160" width="175.00" height="64" fill="#117b87" rx="3"/>
+<text x="437" y="188" font-family="Arial,Helvetica,sans-serif" font-size="15" fill="#fff" text-anchor="middle" font-weight="700">PROMOTE</text>
+<text x="437" y="210" font-family="Arial,Helvetica,sans-serif" font-size="13" fill="#fff" text-anchor="middle" font-weight="400">candidate</text>
+<text x="437" y="259" font-family="Arial,Helvetica,sans-serif" font-size="12" fill="#17334c" text-anchor="middle" font-weight="400">v2c-9fe817b1059c</text>
+<text x="437" y="279" font-family="Arial,Helvetica,sans-serif" font-size="12" fill="#51687d" text-anchor="middle" font-weight="400">9fe817b1059c…</text>
+<text x="437" y="310" font-family="Arial,Helvetica,sans-serif" font-size="11" fill="#51687d" text-anchor="middle" font-weight="400">19:20:15.580 UTC</text>
+<path d="M 530 192 L 577 192" stroke="#17334c" stroke-width="2" fill="none"/>
+<rect x="585" y="160" width="175.00" height="64" fill="#cb6e42" rx="3"/>
+<text x="672" y="188" font-family="Arial,Helvetica,sans-serif" font-size="15" fill="#fff" text-anchor="middle" font-weight="700">ROLLBACK_MODEL</text>
+<text x="672" y="210" font-family="Arial,Helvetica,sans-serif" font-size="13" fill="#fff" text-anchor="middle" font-weight="400">stable</text>
+<text x="672" y="259" font-family="Arial,Helvetica,sans-serif" font-size="12" fill="#17334c" text-anchor="middle" font-weight="400">v2-849ad06d182b</text>
+<text x="672" y="279" font-family="Arial,Helvetica,sans-serif" font-size="12" fill="#51687d" text-anchor="middle" font-weight="400">849ad06d182b…</text>
+<text x="672" y="310" font-family="Arial,Helvetica,sans-serif" font-size="11" fill="#51687d" text-anchor="middle" font-weight="400">19:20:20.507 UTC</text>
+<path d="M 765 192 L 812 192" stroke="#17334c" stroke-width="2" fill="none"/>
+<rect x="820" y="160" width="175.00" height="64" fill="#117b87" rx="3"/>
+<text x="907" y="188" font-family="Arial,Helvetica,sans-serif" font-size="15" fill="#fff" text-anchor="middle" font-weight="700">PROMOTE</text>
+<text x="907" y="210" font-family="Arial,Helvetica,sans-serif" font-size="13" fill="#fff" text-anchor="middle" font-weight="400">candidate</text>
+<text x="907" y="259" font-family="Arial,Helvetica,sans-serif" font-size="12" fill="#17334c" text-anchor="middle" font-weight="400">v2c-9fe817b1059c</text>
+<text x="907" y="279" font-family="Arial,Helvetica,sans-serif" font-size="12" fill="#51687d" text-anchor="middle" font-weight="400">9fe817b1059c…</text>
+<text x="907" y="310" font-family="Arial,Helvetica,sans-serif" font-size="11" fill="#51687d" text-anchor="middle" font-weight="400">19:20:21.065 UTC</text>
+<text x="45" y="410" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#17334c" text-anchor="start" font-weight="400">El modelo estable y el candidato son binarios diferentes y el rollback recupera el SHA anterior.</text>
+<text x="45" y="454" font-family="Arial,Helvetica,sans-serif" font-size="12" fill="#51687d" text-anchor="start" font-weight="400">Duraciones observadas en un runner efímero; no prueban RTO de una planta real.</text>
+</svg>

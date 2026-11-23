@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "source": "ci_report_integrity",
+  "links_checked": 80,
+  "broken_links": 0,
+  "plots_checked": 3,
+  "version_distinct": true,
+  "rollback_sha_verified": true,
+  "mlflow_run_id": "1ac3b0ae08eb412b90074dff62900ce5",
+  "readme_lines": 585
+}

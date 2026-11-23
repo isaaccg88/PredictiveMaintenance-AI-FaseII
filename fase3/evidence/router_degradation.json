@@ -1,0 +1,45 @@
+{
+  "status": "DEGRADED",
+  "endpoint": "http://127.0.0.1:8010",
+  "model_sha256": "9fe817b1059cae42b38fca17fde2a5cdd452dbef6ccf28d7215be7647f2976c6",
+  "serving_slot": "candidate",
+  "threshold_ms": 500,
+  "samples": 6,
+  "http_2xx_count": 6,
+  "p50_ms": 731.53,
+  "p95_ms": 732.18,
+  "responses": [
+    {
+      "code": 200,
+      "elapsed_ms": 732.23,
+      "slot": "candidate"
+    },
+    {
+      "code": 200,
+      "elapsed_ms": 731.89,
+      "slot": "candidate"
+    },
+    {
+      "code": 200,
+      "elapsed_ms": 731.05,
+      "slot": "candidate"
+    },
+    {
+      "code": 200,
+      "elapsed_ms": 731.18,
+      "slot": "candidate"
+    },
+    {
+      "code": 200,
+      "elapsed_ms": 732.05,
+      "slot": "candidate"
+    },
+    {
+      "code": 200,
+      "elapsed_ms": 730.98,
+      "slot": "candidate"
+    }
+  ],
+  "trigger": "controlled_candidate_only_runtime_latency",
+  "at_utc": "2026-11-23T19:20:20.456952+00:00"
+}

@@ -155,19 +155,22 @@ El job **continuous-integration** de [GitHub Actions](.github/workflows/fase3.ym
 
 <!-- F3-RELEASE-START -->
 <details>
-<summary>Manifest de la última release validada</summary>
+<summary>Identidad de los modelos y trazabilidad de la ejecución</summary>
 
-- **Versión:** `v2-849ad06d182b`
-- **SHA-256 completo:** `849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f`
-- **Experimento MLflow:** `PredictiveMaintenanceAI_Actividad8_V2`
-- **Run MLflow de esta ejecución:** `3c61be3957d54d2783b0c4f789f3926d`
-- **Commit origen:** `e719a5a14fd5436a53844ed3394b5febc9aab537`
-- **Alcance:** `academic_staging_only` (autorización industrial = `false`)
-- **GitHub Actions:** [ejecución #45218317927](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/45218317927)
+| Modelo | Versión | SHA-256 |
+|---|---|---|
+| Stable · Random Forest 130 árboles | `v2-849ad06d182b` | `849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f` |
+| Candidate · Random Forest 135 árboles | `v2c-9fe817b1059c` | `9fe817b1059cae42b38fca17fde2a5cdd452dbef6ccf28d7215be7647f2976c6` |
+
+**Entrenamiento:** candidata construida con cinco árboles adicionales por `warm_start`, sin alterar el conjunto de entrenamiento y conservando el umbral fijado mediante validación. Los dos binarios son distintos y pasan los controles de integridad.
+
+**Tracking MLflow:** experimento `PredictiveMaintenanceAI_Actividad8_V2`, run `1ac3b0ae08eb412b90074dff62900ce5`.  
+**Commit de origen:** `1fc4f45376b013495d2d8799da4d5705c97b0957`.  
+**Ejecución completa:** [GitHub Actions #45247484388](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/45247484388).
 
 </details>
 
-[JSON de release](fase3/evidence/release_manifest.json) · [MLflow auditado por el pipeline](actividad8/mlflow_audit.py) · [Evidencia operativa](fase3/evidence/operations_audit.json).
+[Manifest estable](fase3/evidence/release_manifest.json) · [Manifest candidato](fase3/evidence/candidate_release_manifest.json) · [Evaluación comparada](fase3/evidence/model_version_comparison.json).
 <!-- F3-RELEASE-END -->
 
 La [evidencia de release](fase3/evidence/release_manifest.json) contiene el hash completo, seed, evaluación, gates, run MLflow y commit Git de origen. La coincidencia se verifica **antes** del despliegue. El modelo serializado se publica como artefacto temporal de Actions; **no** se incorpora su binario a Git sin necesidad.
@@ -265,18 +268,36 @@ El p95 no sustituye el SLI de oportunidad. Con 12 peticiones, un error consume m
 ### 5.3 Auditoría operacional nueva de Fase III
 
 <!-- F3-OPERATIONS-START -->
-| Campo medido en última ejecución #45218317927 | Resultado |
+| Métrica de la ejecución #45247484388 | Resultado |
 |---|---:|
-| Backend `/predict` registrado | **12 solicitudes** |
-| Respuestas HTTP 5xx del backend | **0** |
-| Disponibilidad backend de la muestra | **100.0%** |
-| Oportunidad backend de la muestra | **100.0%** |
-| Latencia p95 backend | **34.250 ms** |
-| Caída observada desde router (fuera del contador backend) | **HTTP 502** |
-| Transiciones verificadas | **2 promociones y 1 rollback** |
-| Slot final | **`candidate`** |
+| Versión inicial | **`v2-849ad06d182b`** |
+| Versión candidata validada | **`v2c-9fe817b1059c`** |
+| Modelos binarios distintos | **Sí, SHA-256 diferentes** |
+| Solicitudes `/predict` en candidata final | **18** |
+| Respuestas HTTP 5xx del backend final | **0** |
+| Éxito backend de la muestra final | **100.0%** |
+| Latencia p95 backend final | **40.789 ms** |
+| Latencia p95 degradada, medida en el router | **732.18 ms** |
+| Umbral diagnóstico de latencia | **500 ms** |
+| Promociones / rollback de modelo | **2 / 1** |
+| SHA tras rollback | **`849ad06d182b` (stable)** |
+| Slot después de recuperar candidata | **`candidate`** |
 
-Estas cifras proceden de [la misma ejecución aprobada](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/45218317927); no son promedios de un servicio permanente. El error 502 se conserva en el [smoke del router](fase3/evidence/router_failure.json), por separado de `/metrics` del backend apagado.
+**Interpretación:** el servicio enrutó dos versiones reales. La latencia adicional del candidato fue introducida deliberadamente después de su primera promoción para verificar una respuesta correctiva. El rollback devolvió el tráfico al **modelo estable de 130 árboles**, cuya identidad se verificó por HTTP, y más tarde se restauró la candidata sin degradación. No se interpreta esta inyección como una pérdida natural de precisión.
+
+![Comparación de modelos sobre holdout sintético](fase3/evidence/fig_01_versiones_modelo.svg)
+
+**Figura 10.** Métricas del piloto de 12 máquinas para dos versiones realmente evaluadas, con el mismo umbral.
+
+![Degradación y recuperación de latencia](fase3/evidence/fig_02_latencia_rollback.svg)
+
+**Figura 11.** p95 HTTP observado antes/durante/después del rollback; la línea indica el límite diagnóstico de 500 ms.
+
+![Eventos GitOps registrados](fase3/evidence/fig_03_timeline_gitops.svg)
+
+**Figura 12.** Secuencia verificable de promoción, degradación, rollback y re-promoción, con versiones y hashes.
+
+[Auditoría completa](fase3/evidence/operations_audit.json) · [Muestras de latencia degradada](fase3/evidence/router_degradation.json) · [Estado restaurado](fase3/evidence/router_restored.json) · [GitHub Actions #45247484388](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/45247484388).
 <!-- F3-OPERATIONS-END -->
 
 [JSON de auditoría](fase3/evidence/operations_audit.json) · [Regresión de latencia observada](fase3/evidence/router_degradation.json) · [Comprobación después del rollback](fase3/evidence/router_restored.json).

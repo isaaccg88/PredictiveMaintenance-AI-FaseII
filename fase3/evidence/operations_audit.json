@@ -1,55 +1,41 @@
 {
-  "scope": "SIMULATED_STAGING_GITHUB_ACTIONS",
-  "synthetic_data": true,
+  "scope": "SYNTHETIC_EPHEMERAL_DOCKER_CI",
   "industrial_deployment": false,
-  "observed_at_utc": "2026-11-23T16:38:11.094006+00:00",
-  "release_version": "v2-849ad06d182b",
-  "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
+  "synthetic_data": true,
+  "observed_at_utc": "2026-11-23T19:20:21.444213+00:00",
+  "release_version": "v2c-9fe817b1059c",
+  "model_sha256": "9fe817b1059cae42b38fca17fde2a5cdd452dbef6ccf28d7215be7647f2976c6",
+  "stable_version": "v2-849ad06d182b",
+  "stable_model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
+  "versions_distinct": true,
   "active_slot": "candidate",
-  "model_quality_gates": {
-    "precision": {
-      "actual": 0.7238493723849372,
-      "minimum": 0.7,
-      "passed": true
-    },
-    "recall": {
-      "actual": 0.7828054298642534,
-      "minimum": 0.75,
-      "passed": true
-    },
-    "roc_auc": {
-      "actual": 0.9655355804025869,
-      "minimum": 0.95,
-      "passed": true
-    },
-    "event_recall": {
-      "actual": 0.8857142857142857,
-      "minimum": 0.85,
-      "passed": true
-    }
-  },
-  "mlflow_run_id": "3c61be3957d54d2783b0c4f789f3926d",
-  "api_predict_samples": 12,
+  "mlflow_run_id": "1ac3b0ae08eb412b90074dff62900ce5",
+  "api_predict_samples": 18,
   "api_http_5xx": 0,
   "api_availability_ratio": 1.0,
   "api_timely_ratio": 1.0,
-  "api_latency_p95_ms": 34.25,
-  "router_outage_observed_in_separate_smoke": true,
-  "router_outage_status": 502,
-  "rollback_events": 1,
+  "api_latency_p95_ms": 40.789,
+  "candidate_latency_regression_p95_ms": 732.18,
+  "candidate_latency_threshold_ms": 500,
   "promotions": 2,
+  "rollback_events": 1,
+  "model_version_rollback_verified": true,
+  "rollback_from_sha256": "9fe817b1059cae42b38fca17fde2a5cdd452dbef6ccf28d7215be7647f2976c6",
+  "rollback_to_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
+  "recovery_predictions": 3,
   "limitations": [
-    "API /metrics counts backend /predict only; router 502 is recorded in failure smoke separately.",
-    "Small HTTP sample: does not establish monthly SLA nor industrial reliability.",
-    "Stable and candidate use same model binary, so rollback demonstrates routing recovery, not model downgrade.",
-    "Both containers share one runner; neither multi-AZ nor cloud is deployed.",
-    "A9 FinOps amounts remain estimates, not an AWS invoice."
+    "Candidate model is genuinely distinct (135 vs 130 trees), but both use a fixed synthetic dataset.",
+    "Degradation is a controlled service latency fault injected AFTER promotion, not a natural accuracy decline.",
+    "Rollback restores previous model hash via routing but does not migrate SQL state across slots.",
+    "Backend /metrics omits the router-side regression; it is measured at the gateway separately.",
+    "No multi-AZ, cloud deployment, sustained SLO measurement or live industrial data."
   ],
   "evidence": {
-    "failed_candidate": "fase3/evidence/router_failure.json",
-    "restored_router": "fase3/evidence/router_restored.json",
-    "final_router": "fase3/evidence/router_final.json",
-    "gitops_history": "fase3/evidence/deployment_events.json",
-    "previous_slo_history": "actividad8/evidence/incidents.json"
+    "version_comparison": "fase3/evidence/model_version_comparison.json",
+    "degradation": "fase3/evidence/router_degradation.json",
+    "promoted": "fase3/evidence/router_promoted.json",
+    "restored": "fase3/evidence/router_restored.json",
+    "final": "fase3/evidence/router_final.json",
+    "events": "fase3/evidence/deployment_events.json"
   }
 }

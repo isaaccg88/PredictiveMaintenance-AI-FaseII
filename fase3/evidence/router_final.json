@@ -1,32 +1,33 @@
 {
   "status": "PASS",
   "endpoint": "http://127.0.0.1:8010",
-  "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
+  "model_sha256": "9fe817b1059cae42b38fca17fde2a5cdd452dbef6ccf28d7215be7647f2976c6",
+  "model_slot": "candidate",
+  "serving_slot": "candidate",
   "horizon_hours": 72,
   "synthetic": true,
-  "serving_slot": "candidate",
   "successful_predictions": 3,
-  "history_rows": 12,
+  "history_rows": 18,
   "predictions": [
     {
       "machine_id": "PM-049",
-      "trace_id": "1f9c2f53-bb1d-4d8e-aa46-ed8e7d17dd37",
-      "probability_72h": 0.456846,
-      "elapsed_ms": 32.809
+      "trace_id": "83176c2c-f623-43c8-9204-5b46e79ab25b",
+      "probability_72h": 0.451654,
+      "elapsed_ms": 50.767
     },
     {
       "machine_id": "PM-050",
-      "trace_id": "dd497e09-ab6f-423c-9949-a7b734ecdf62",
-      "probability_72h": 0.0,
-      "elapsed_ms": 33.323
+      "trace_id": "3d8a3b3e-acc2-4a14-acf6-6373cddd50d6",
+      "probability_72h": 0.000101,
+      "elapsed_ms": 29.328
     },
     {
       "machine_id": "PM-051",
-      "trace_id": "15d6a4d0-5859-4258-a595-1bb755948204",
-      "probability_72h": 0.114736,
-      "elapsed_ms": 33.325
+      "trace_id": "48848533-2630-4c6d-921c-45700181be4d",
+      "probability_72h": 0.118575,
+      "elapsed_ms": 58.947
     }
   ],
-  "elapsed_ms": 124.09,
-  "at_utc": "2026-11-23T16:38:10.933269+00:00"
+  "elapsed_ms": 158.51,
+  "at_utc": "2026-11-23T19:20:21.309721+00:00"
 }

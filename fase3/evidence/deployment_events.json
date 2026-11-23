@@ -1,77 +1,95 @@
 {
-  "scope": "SIMULATED_EPHEMERAL_RUNNER",
+  "scope": "SIMULATED_EPHEMERAL_RUNNER_TWO_REAL_MODEL_VERSIONS",
   "events": [
     {
-      "at_utc": "2026-11-23T16:37:21.825920+00:00",
+      "at_utc": "2026-11-23T19:19:29.790706+00:00",
       "type": "INITIALIZE",
-      "reason": "Ambos contenedores reciben el mismo artefacto versionado",
+      "reason": "Stable 130 árboles y candidata 135 árboles: SHA distintos",
       "active_slot": "stable",
-      "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
+      "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
+      "release_version": "v2-849ad06d182b"
     },
     {
-      "at_utc": "2026-11-23T16:38:06.824978+00:00",
+      "at_utc": "2026-11-23T19:20:15.580099+00:00",
       "type": "PROMOTE",
-      "reason": "Candidate aprobado por modelo, API, inferencias y persistencia",
+      "reason": "Modelo candidato distinto promovido después de quality gates y smoke",
       "active_slot": "candidate",
-      "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
+      "model_sha256": "9fe817b1059cae42b38fca17fde2a5cdd452dbef6ccf28d7215be7647f2976c6",
+      "release_version": "v2c-9fe817b1059c"
     },
     {
-      "at_utc": "2026-11-23T16:38:07.857292+00:00",
-      "type": "ROLLBACK",
-      "reason": "Respuesta 502 observada y restauración de tráfico a stable",
+      "at_utc": "2026-11-23T19:20:20.507814+00:00",
+      "type": "ROLLBACK_MODEL",
+      "reason": "Degradación p95 HTTP medida; recuperación de SHA estable previo",
       "active_slot": "stable",
-      "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
+      "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
+      "release_version": "v2-849ad06d182b"
     },
     {
-      "at_utc": "2026-11-23T16:38:10.709658+00:00",
+      "at_utc": "2026-11-23T19:20:21.065141+00:00",
       "type": "PROMOTE",
-      "reason": "Candidate aprobado por modelo, API, inferencias y persistencia",
+      "reason": "Modelo candidato distinto promovido después de quality gates y smoke",
       "active_slot": "candidate",
-      "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
+      "model_sha256": "9fe817b1059cae42b38fca17fde2a5cdd452dbef6ccf28d7215be7647f2976c6",
+      "release_version": "v2c-9fe817b1059c"
     }
   ],
   "state": {
-    "schema_version": 1,
+    "schema_version": 2,
     "environment": "academic-ci-staging",
     "synthetic": true,
     "industrial_release_authorized": false,
-    "release_version": "v2-849ad06d182b",
-    "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
     "active_slot": "candidate",
     "previous_slot": "stable",
+    "models": {
+      "stable": {
+        "version": "v2-849ad06d182b",
+        "sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
+      },
+      "candidate": {
+        "version": "v2c-9fe817b1059c",
+        "sha256": "9fe817b1059cae42b38fca17fde2a5cdd452dbef6ccf28d7215be7647f2976c6"
+      }
+    },
     "routes": {
       "stable": "http://api-stable:8008",
       "candidate": "http://api-candidate:8008"
     },
     "history": [
       {
-        "at_utc": "2026-11-23T16:37:21.825920+00:00",
+        "at_utc": "2026-11-23T19:19:29.790706+00:00",
         "type": "INITIALIZE",
-        "reason": "Ambos contenedores reciben el mismo artefacto versionado",
+        "reason": "Stable 130 árboles y candidata 135 árboles: SHA distintos",
         "active_slot": "stable",
-        "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
+        "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
+        "release_version": "v2-849ad06d182b"
       },
       {
-        "at_utc": "2026-11-23T16:38:06.824978+00:00",
+        "at_utc": "2026-11-23T19:20:15.580099+00:00",
         "type": "PROMOTE",
-        "reason": "Candidate aprobado por modelo, API, inferencias y persistencia",
+        "reason": "Modelo candidato distinto promovido después de quality gates y smoke",
         "active_slot": "candidate",
-        "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
+        "model_sha256": "9fe817b1059cae42b38fca17fde2a5cdd452dbef6ccf28d7215be7647f2976c6",
+        "release_version": "v2c-9fe817b1059c"
       },
       {
-        "at_utc": "2026-11-23T16:38:07.857292+00:00",
-        "type": "ROLLBACK",
-        "reason": "Respuesta 502 observada y restauración de tráfico a stable",
+        "at_utc": "2026-11-23T19:20:20.507814+00:00",
+        "type": "ROLLBACK_MODEL",
+        "reason": "Degradación p95 HTTP medida; recuperación de SHA estable previo",
         "active_slot": "stable",
-        "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
+        "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
+        "release_version": "v2-849ad06d182b"
       },
       {
-        "at_utc": "2026-11-23T16:38:10.709658+00:00",
+        "at_utc": "2026-11-23T19:20:21.065141+00:00",
         "type": "PROMOTE",
-        "reason": "Candidate aprobado por modelo, API, inferencias y persistencia",
+        "reason": "Modelo candidato distinto promovido después de quality gates y smoke",
         "active_slot": "candidate",
-        "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
+        "model_sha256": "9fe817b1059cae42b38fca17fde2a5cdd452dbef6ccf28d7215be7647f2976c6",
+        "release_version": "v2c-9fe817b1059c"
       }
-    ]
+    ],
+    "model_sha256": "9fe817b1059cae42b38fca17fde2a5cdd452dbef6ccf28d7215be7647f2976c6",
+    "release_version": "v2c-9fe817b1059c"
   }
 }
