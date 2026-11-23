@@ -14,7 +14,7 @@ El profesor solicita: (1) pipeline MLOps/GitOps, (2) documento técnico de opera
 
 | Criterio de rúbrica (25 puntos c/u) | Secciones donde se demuestra | Estado |
 |---|---|---|
-| **1. Pipeline de IA (MLOps/GitOps)**: integración, pruebas, versionado, despliegue | 2–5, 10; [workflow reproducible](.github/workflows/fase3.yml) y [ejecución aprobada](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/45215668864) | **Implementado y ejecutado** en staging efímero |
+| **1. Pipeline de IA (MLOps/GitOps)**: integración, pruebas, versionado, despliegue | 2–5, 10; [workflow reproducible](.github/workflows/fase3.yml) y [últimas ejecuciones](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/fase3.yml) | **Implementado y ejecutado** en staging efímero |
 | **2. Monitoreo, auditoría y optimización**: indicadores y mejora sustentada | 6–8; [auditoría operacional](fase3/evidence/operations_audit.json), [A8](actividad8/evidence/incidents.json), [A9](actividad9/evidence/load_benchmark.json) | **Medido** en piloto sintético y laboratorio |
 | **3. Portfolio técnico-estratégico**: problema, arquitectura, valor, resultados, decisiones | 1, 2, 7–9, 11–12; imágenes, tablas y trazas vinculadas | **Documentado**, sin prometer impacto industrial no medido |
 | **4. Presentación y preparación profesional**: defensa técnica y gerencial | 13 (preguntas, respuestas y narrativa) | **Preparación realizada; video/entrevista pendiente** |
@@ -161,6 +161,7 @@ El job **continuous-integration** de [GitHub Actions](.github/workflows/fase3.ym
 
 ### 3.5 MLflow y firma del artefacto
 
+<!-- F3-RELEASE-START -->
 <details>
 <summary>Datos de la release aprobada</summary>
 
@@ -172,6 +173,7 @@ El job **continuous-integration** de [GitHub Actions](.github/workflows/fase3.ym
 - **Release industrial autorizada:** `false`
 
 </details>
+<!-- F3-RELEASE-END -->
 
 La [evidencia de release](fase3/evidence/release_manifest.json) contiene el hash completo, seed, evaluación, gates, run MLflow y commit Git de origen. La coincidencia se verifica **antes** del despliegue. El modelo serializado se publica como artefacto temporal de Actions; **no** se incorpora su binario a Git sin necesidad.
 
@@ -179,7 +181,7 @@ La [evidencia de release](fase3/evidence/release_manifest.json) contiene el hash
 
 **Figura 3.** Evidencia histórica real de la interfaz MLflow del laboratorio de la Actividad 8. Fase III realiza una nueva auditoría programática del tracking store en su propio CI; esta captura no se presenta como pantalla de la ejecución nueva.
 
-[Workflow aprobado de Fase III #45215668864](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/45215668864) · [Auditoría MLflow reutilizada](actividad8/mlflow_audit.py).
+[Ejecuciones de Fase III](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/fase3.yml) · [Auditoría MLflow reutilizada](actividad8/mlflow_audit.py).
 
 ---
 
@@ -268,6 +270,7 @@ El p95 no sustituye el SLI de oportunidad. Con 12 peticiones, un error consume m
 
 ### 5.3 Auditoría operacional nueva de Fase III
 
+<!-- F3-OPERATIONS-START -->
 | Campo medido | Resultado |
 |---|---:|
 | Backend `/predict` registrado | **12 solicitudes** |
@@ -277,6 +280,7 @@ El p95 no sustituye el SLI de oportunidad. Con 12 peticiones, un error consume m
 | Latencia p95 backend | **43.411 ms** |
 | Incidencia de router (separada de `/metrics` del backend) | **502** |
 | Restablecimiento y nuevas inferencias | **PASS** |
+<!-- F3-OPERATIONS-END -->
 
 [JSON original de auditoría](fase3/evidence/operations_audit.json) · [Fallo observado por el router](fase3/evidence/router_failure.json) · [Comprobación después del rollback](fase3/evidence/router_restored.json).
 
@@ -513,7 +517,7 @@ Para repetir **el rollback** debe detenerse el contenedor `api-candidate`, verif
 | Evidencia visual del dashboard | [Capturas A8](actividad8/docs/EVIDENCIAS_VISUALES.md) |
 | MLflow de etapa previa | [Capturas MLflow A8](actividad8/docs/MLFLOW_EVIDENCIA.md) |
 | Performance/FinOps/fairness | [Benchmark](actividad9/evidence/load_benchmark.json) · [Costos](actividad9/evidence/finops_model.json) · [Grupos A/B/C](actividad9/evidence/fairness_machine_types.json) |
-| Ejecución auditada de Fase III | [GitHub Actions #45215668864](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/45215668864) |
+| Ejecución auditada de Fase III | [Workflow de Fase III](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/workflows/fase3.yml) |
 
 ---
 
