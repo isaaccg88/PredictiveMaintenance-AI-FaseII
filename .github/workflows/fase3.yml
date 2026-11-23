@@ -48,6 +48,7 @@ jobs:
       - name: Crear release versionada y rechazar métricas bajo umbral o hash alterado
         run: |
           python -m fase3.release
+          python -m fase3.model_versions
           python - <<'PY'
           from fase3.release import verify_manifest
           x=verify_manifest()
@@ -65,11 +66,15 @@ jobs:
             actividad8/evidence/mlflow_validation.json
             actividad8/evidence/mlflow_validation.md
             fase3/evidence/release_manifest.json
+            fase3/evidence/candidate_release_manifest.json
+            fase3/evidence/candidate_evaluation.json
+            fase3/evidence/model_version_comparison.json
+            fase3/build/candidate/
           if-no-files-found: error
           retention-days: 30
 
   continuous-deployment:
-    name: CD GitOps - Docker, canary, promote, fallo y rollback HTTP
+    name: CD GitOps - dos versiones reales, degradación p95 y rollback de modelo
     needs: continuous-integration
     runs-on: ubuntu-24.04
     timeout-minutes: 55
@@ -89,11 +94,12 @@ jobs:
         run: |
           python -m pip install requests==2.32.5
           python - <<'PY'
-          from fase3.release import verify_manifest
+          from fase3.gitops import versions
           from pathlib import Path
-          r=verify_manifest()
+          both=versions()
           assert Path("actividad8/artifacts/model_v2.joblib").stat().st_size>10000
-          print("DEPLOY ARTIFACT SHA VERIFIED:",r["model_sha256"])
+          assert both["stable"]["sha256"]!=both["candidate"]["sha256"]
+          print("DISTINCT MODEL RELEASES VERIFIED:",both)
           PY
           docker compose -f fase3/compose.yaml config -q
       - name: Definir estado GitOps inicial (slot stable)
@@ -109,36 +115,31 @@ jobs:
           echo 'Dashboard sin healthcheck'; exit 1
       - name: Smoke inicial, candidata y rutas estables (HTTP y SQLite reales)
         run: |
-          python -m fase3.smoke --url http://127.0.0.1:8008 --out fase3/evidence/stable_smoke.json
-          python -m fase3.smoke --url http://127.0.0.1:8009 --out fase3/evidence/candidate_smoke.json
-          python -m fase3.smoke --url http://127.0.0.1:8010 --expected-slot stable --out fase3/evidence/router_initial.json
-      - name: Promocionar candidata solo después de gate HTTP y firma
+          python -m fase3.smoke --url http://127.0.0.1:8008 --expected-model stable --out fase3/evidence/stable_smoke.json
+          python -m fase3.smoke --url http://127.0.0.1:8009 --expected-model candidate --out fase3/evidence/candidate_smoke.json
+          python -m fase3.smoke --url http://127.0.0.1:8010 --expected-model stable --expected-slot stable --out fase3/evidence/router_initial.json
+      - name: Promocionar modelo candidato distinto después de gates y smoke
         run: |
           python -m fase3.gitops promote --validation fase3/evidence/candidate_smoke.json
-          python -m fase3.smoke --url http://127.0.0.1:8010 --expected-slot candidate --out fase3/evidence/router_promoted.json
-      - name: Inyectar caída real del contenedor candidato y observar HTTP 502
+          python -m fase3.smoke --url http://127.0.0.1:8010 --expected-model candidate --expected-slot candidate --out fase3/evidence/router_promoted.json
+      - name: Degradación controlada DESPUÉS de promover el modelo distinto
         run: |
-          docker compose -f fase3/compose.yaml stop api-candidate
-          python -m fase3.smoke --url http://127.0.0.1:8010 --out fase3/evidence/router_failure.json --expect-failure
-      - name: Rollback verificable de tráfico a stable
+          docker compose -f fase3/compose.yaml exec -T api-candidate sh -c 'touch /state/latency_degradation.flag'
+          python -m fase3.degradation_probe --out fase3/evidence/router_degradation.json --samples 6
+      - name: Rollback comprobado al SHA del modelo estable anterior
         run: |
-          python -m fase3.gitops rollback --failure fase3/evidence/router_failure.json
-          python -m fase3.smoke --url http://127.0.0.1:8010 --expected-slot stable --out fase3/evidence/router_restored.json
-      - name: Restaurar candidata y promover tras recuperar pruebas
+          python -m fase3.gitops rollback --failure fase3/evidence/router_degradation.json
+          python -m fase3.smoke --url http://127.0.0.1:8010 --expected-model stable --expected-slot stable --out fase3/evidence/router_restored.json
+      - name: Reparar latencia, probar candidata y promocionar de nuevo
         run: |
-          docker compose -f fase3/compose.yaml start api-candidate
-          ready=0
-          for i in $(seq 1 50); do
-            if curl -fsS http://127.0.0.1:8009/health >/dev/null; then ready=1; break; fi
-            sleep 2
-          done
-          test "$ready" -eq 1
-          python -m fase3.smoke --url http://127.0.0.1:8009 --out fase3/evidence/candidate_smoke.json
+          docker compose -f fase3/compose.yaml exec -T api-candidate sh -c 'rm -f /state/latency_degradation.flag'
+          python -m fase3.smoke --url http://127.0.0.1:8009 --expected-model candidate --out fase3/evidence/candidate_smoke.json
           python -m fase3.gitops promote --validation fase3/evidence/candidate_smoke.json
-          python -m fase3.smoke --url http://127.0.0.1:8010 --expected-slot candidate --out fase3/evidence/router_final.json
+          python -m fase3.smoke --url http://127.0.0.1:8010 --expected-model candidate --expected-slot candidate --out fase3/evidence/router_final.json
       - name: Auditar operación, métricas y registro completo de decisiones
         run: |
           python -m fase3.ops_audit
+          python -m fase3.visualizations
           cp fase3/runtime/desired-state.json fase3/gitops/desired-state.json
           python -m fase3.update_readme
           python - <<'PY'
@@ -146,9 +147,10 @@ jobs:
           from pathlib import Path
           e=json.loads(Path("fase3/evidence/deployment_events.json").read_text())
           assert [x["type"] for x in e["events"]].count("PROMOTE")==2
-          assert [x["type"] for x in e["events"]].count("ROLLBACK")==1
+          assert [x["type"] for x in e["events"]].count("ROLLBACK_MODEL")==1
           assert e["state"]["active_slot"]=="candidate"
-          print("GITOPS CD: PROMOTE -> 502 -> ROLLBACK -> PROMOTE: PASS")
+          assert e["state"]["models"]["stable"]["sha256"]!=e["state"]["models"]["candidate"]["sha256"]
+          print("MODEL VERSION ROLLBACK: PROMOTE -> LATENCY REGRESSION -> SHA STABLE -> PROMOTE: PASS")
           PY
       - name: Capturar evidencia técnica del despliegue
         if: always()
@@ -156,7 +158,7 @@ jobs:
           mkdir -p fase3/evidence
           docker compose -f fase3/compose.yaml ps --format json > fase3/evidence/compose_status.json || true
           docker compose -f fase3/compose.yaml logs --no-color > fase3/evidence/containers.log || true
-      - name: Versionar estado deseado, auditoría y resultados en GitHub
+      - name: Versionar estado deseado, evidencia visual y resultados en GitHub
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
