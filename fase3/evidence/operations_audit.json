@@ -1,0 +1,55 @@
+{
+  "scope": "SIMULATED_STAGING_GITHUB_ACTIONS",
+  "synthetic_data": true,
+  "industrial_deployment": false,
+  "observed_at_utc": "2026-11-23T16:24:15.590755+00:00",
+  "release_version": "v2-849ad06d182b",
+  "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
+  "active_slot": "candidate",
+  "model_quality_gates": {
+    "precision": {
+      "actual": 0.7238493723849372,
+      "minimum": 0.7,
+      "passed": true
+    },
+    "recall": {
+      "actual": 0.7828054298642534,
+      "minimum": 0.75,
+      "passed": true
+    },
+    "roc_auc": {
+      "actual": 0.9655355804025869,
+      "minimum": 0.95,
+      "passed": true
+    },
+    "event_recall": {
+      "actual": 0.8857142857142857,
+      "minimum": 0.85,
+      "passed": true
+    }
+  },
+  "mlflow_run_id": "b95aa7efc5b24e22b0f4121d4b48ff7f",
+  "api_predict_samples": 12,
+  "api_http_5xx": 0,
+  "api_availability_ratio": 1.0,
+  "api_timely_ratio": 1.0,
+  "api_latency_p95_ms": 43.411,
+  "router_outage_observed_in_separate_smoke": true,
+  "router_outage_status": 502,
+  "rollback_events": 1,
+  "promotions": 2,
+  "limitations": [
+    "API /metrics counts backend /predict only; router 502 is recorded in failure smoke separately.",
+    "Small HTTP sample: does not establish monthly SLA nor industrial reliability.",
+    "Stable and candidate use same model binary, so rollback demonstrates routing recovery, not model downgrade.",
+    "Both containers share one runner; neither multi-AZ nor cloud is deployed.",
+    "A9 FinOps amounts remain estimates, not an AWS invoice."
+  ],
+  "evidence": {
+    "failed_candidate": "fase3/evidence/router_failure.json",
+    "restored_router": "fase3/evidence/router_restored.json",
+    "final_router": "fase3/evidence/router_final.json",
+    "gitops_history": "fase3/evidence/deployment_events.json",
+    "previous_slo_history": "actividad8/evidence/incidents.json"
+  }
+}

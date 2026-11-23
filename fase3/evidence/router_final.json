@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "endpoint": "http://127.0.0.1:8010",
+  "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
+  "horizon_hours": 72,
+  "synthetic": true,
+  "serving_slot": "candidate",
+  "successful_predictions": 3,
+  "history_rows": 12,
+  "predictions": [
+    {
+      "machine_id": "PM-049",
+      "trace_id": "71eaa422-37dc-4676-a8d0-e20d379ca92c",
+      "probability_72h": 0.456846,
+      "elapsed_ms": 33.556
+    },
+    {
+      "machine_id": "PM-050",
+      "trace_id": "fb00524a-b40c-4d1f-aab4-8996095cfd52",
+      "probability_72h": 0.0,
+      "elapsed_ms": 34.44
+    },
+    {
+      "machine_id": "PM-051",
+      "trace_id": "cf39eb6d-0a94-477c-9b42-8a8548664679",
+      "probability_72h": 0.114736,
+      "elapsed_ms": 33.946
+    }
+  ],
+  "elapsed_ms": 127.34,
+  "at_utc": "2026-11-23T16:24:15.393709+00:00"
+}

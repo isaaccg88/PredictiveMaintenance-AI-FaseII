@@ -1,0 +1,32 @@
+{
+  "status": "PASS",
+  "endpoint": "http://127.0.0.1:8010",
+  "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
+  "horizon_hours": 72,
+  "synthetic": true,
+  "serving_slot": "stable",
+  "successful_predictions": 3,
+  "history_rows": 9,
+  "predictions": [
+    {
+      "machine_id": "PM-049",
+      "trace_id": "13445065-76e7-402e-9440-0f3c3d1526bc",
+      "probability_72h": 0.456846,
+      "elapsed_ms": 36.4
+    },
+    {
+      "machine_id": "PM-050",
+      "trace_id": "f3980a3b-7739-48e4-8e45-33e49a2202c3",
+      "probability_72h": 0.0,
+      "elapsed_ms": 34.323
+    },
+    {
+      "machine_id": "PM-051",
+      "trace_id": "a8cb5154-81b4-4038-b863-6c77eeaa17e5",
+      "probability_72h": 0.114736,
+      "elapsed_ms": 34.644
+    }
+  ],
+  "elapsed_ms": 134.99,
+  "at_utc": "2026-11-23T16:24:12.459130+00:00"
+}

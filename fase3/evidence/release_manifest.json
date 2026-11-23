@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "version": "v2-849ad06d182b",
+  "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
+  "model_relative_path": "actividad8/artifacts/model_v2.joblib",
+  "metadata_relative_path": "actividad8/artifacts/metadata_v2.json",
+  "source_commit": "cb41e3e978c3cb69b7ba7c7cc80c3ca92d0ec713",
+  "ci_run_id": "45215668864",
+  "created_at_utc": "2026-11-23T16:23:04.776406+00:00",
+  "generator": "synthetic_V2_seed_20261114",
+  "evaluation_partition": "12_unseen_machines_pilot",
+  "time_horizon_hours": 72,
+  "synthetic": true,
+  "mlflow_run_id": "b95aa7efc5b24e22b0f4121d4b48ff7f",
+  "mlflow_experiment": "PredictiveMaintenanceAI_Actividad8_V2",
+  "quality_gates": {
+    "precision": {
+      "actual": 0.7238493723849372,
+      "minimum": 0.7,
+      "passed": true
+    },
+    "recall": {
+      "actual": 0.7828054298642534,
+      "minimum": 0.75,
+      "passed": true
+    },
+    "roc_auc": {
+      "actual": 0.9655355804025869,
+      "minimum": 0.95,
+      "passed": true
+    },
+    "event_recall": {
+      "actual": 0.8857142857142857,
+      "minimum": 0.85,
+      "passed": true
+    }
+  },
+  "approval_scope": "academic_staging_only",
+  "industrial_release_authorized": false
+}
