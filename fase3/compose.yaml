@@ -4,6 +4,8 @@ services:
     build:
       context: ..
       dockerfile: fase3/docker/Dockerfile.api
+      args:
+        MODEL_SLOT: stable
     ports: ["127.0.0.1:8008:8008"]
     environment:
       ACT8_RUNTIME: /state
@@ -20,10 +22,13 @@ services:
     build:
       context: ..
       dockerfile: fase3/docker/Dockerfile.api
+      args:
+        MODEL_SLOT: candidate
     ports: ["127.0.0.1:8009:8008"]
     environment:
       ACT8_RUNTIME: /state
       LAB_MODE: "0"
+      F3_DEGRADATION_FLAG: /state/latency_degradation.flag
     volumes:
       - candidate_db:/state
     healthcheck:
