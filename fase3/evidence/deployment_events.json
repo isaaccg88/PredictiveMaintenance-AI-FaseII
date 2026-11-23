@@ -2,28 +2,28 @@
   "scope": "SIMULATED_EPHEMERAL_RUNNER",
   "events": [
     {
-      "at_utc": "2026-11-23T16:32:18.560842+00:00",
+      "at_utc": "2026-11-23T16:37:21.825920+00:00",
       "type": "INITIALIZE",
       "reason": "Ambos contenedores reciben el mismo artefacto versionado",
       "active_slot": "stable",
       "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
     },
     {
-      "at_utc": "2026-11-23T16:32:57.304294+00:00",
+      "at_utc": "2026-11-23T16:38:06.824978+00:00",
       "type": "PROMOTE",
       "reason": "Candidate aprobado por modelo, API, inferencias y persistencia",
       "active_slot": "candidate",
       "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
     },
     {
-      "at_utc": "2026-11-23T16:32:58.134794+00:00",
+      "at_utc": "2026-11-23T16:38:07.857292+00:00",
       "type": "ROLLBACK",
       "reason": "Respuesta 502 observada y restauración de tráfico a stable",
       "active_slot": "stable",
       "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
     },
     {
-      "at_utc": "2026-11-23T16:33:00.742683+00:00",
+      "at_utc": "2026-11-23T16:38:10.709658+00:00",
       "type": "PROMOTE",
       "reason": "Candidate aprobado por modelo, API, inferencias y persistencia",
       "active_slot": "candidate",
@@ -45,28 +45,28 @@
     },
     "history": [
       {
-        "at_utc": "2026-11-23T16:32:18.560842+00:00",
+        "at_utc": "2026-11-23T16:37:21.825920+00:00",
         "type": "INITIALIZE",
         "reason": "Ambos contenedores reciben el mismo artefacto versionado",
         "active_slot": "stable",
         "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
       },
       {
-        "at_utc": "2026-11-23T16:32:57.304294+00:00",
+        "at_utc": "2026-11-23T16:38:06.824978+00:00",
         "type": "PROMOTE",
         "reason": "Candidate aprobado por modelo, API, inferencias y persistencia",
         "active_slot": "candidate",
         "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
       },
       {
-        "at_utc": "2026-11-23T16:32:58.134794+00:00",
+        "at_utc": "2026-11-23T16:38:07.857292+00:00",
         "type": "ROLLBACK",
         "reason": "Respuesta 502 observada y restauración de tráfico a stable",
         "active_slot": "stable",
         "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f"
       },
       {
-        "at_utc": "2026-11-23T16:33:00.742683+00:00",
+        "at_utc": "2026-11-23T16:38:10.709658+00:00",
         "type": "PROMOTE",
         "reason": "Candidate aprobado por modelo, API, inferencias y persistencia",
         "active_slot": "candidate",

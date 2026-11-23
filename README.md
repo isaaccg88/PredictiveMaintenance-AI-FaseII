@@ -165,16 +165,19 @@ El job **continuous-integration** de [GitHub Actions](.github/workflows/fase3.ym
 
 <!-- F3-RELEASE-START -->
 <details>
-<summary>Datos de la release aprobada</summary>
+<summary>Manifest de la última release validada</summary>
 
 - **Versión:** `v2-849ad06d182b`
-- **SHA-256:** `849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f`
-- **Experimento:** `PredictiveMaintenanceAI_Actividad8_V2`
-- **Run MLflow:** `b95aa7efc5b24e22b0f4121d4b48ff7f`
-- **Alcance:** `academic_staging_only`
-- **Release industrial autorizada:** `false`
+- **SHA-256 completo:** `849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f`
+- **Experimento MLflow:** `PredictiveMaintenanceAI_Actividad8_V2`
+- **Run MLflow de esta ejecución:** `3c61be3957d54d2783b0c4f789f3926d`
+- **Commit origen:** `e719a5a14fd5436a53844ed3394b5febc9aab537`
+- **Alcance:** `academic_staging_only` (autorización industrial = `false`)
+- **GitHub Actions:** [ejecución #45218317927](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/45218317927)
 
 </details>
+
+[JSON de release](fase3/evidence/release_manifest.json) · [MLflow auditado por el pipeline](actividad8/mlflow_audit.py) · [Evidencia operativa](fase3/evidence/operations_audit.json).
 <!-- F3-RELEASE-END -->
 
 La [evidencia de release](fase3/evidence/release_manifest.json) contiene el hash completo, seed, evaluación, gates, run MLflow y commit Git de origen. La coincidencia se verifica **antes** del despliegue. El modelo serializado se publica como artefacto temporal de Actions; **no** se incorpora su binario a Git sin necesidad.
@@ -273,15 +276,18 @@ El p95 no sustituye el SLI de oportunidad. Con 12 peticiones, un error consume m
 ### 5.3 Auditoría operacional nueva de Fase III
 
 <!-- F3-OPERATIONS-START -->
-| Campo medido | Resultado |
+| Campo medido en última ejecución #45218317927 | Resultado |
 |---|---:|
 | Backend `/predict` registrado | **12 solicitudes** |
 | Respuestas HTTP 5xx del backend | **0** |
-| Disponibilidad backend de la muestra | **100%** |
-| Oportunidad backend de la muestra | **100%** |
-| Latencia p95 backend | **43.411 ms** |
-| Incidencia de router (separada de `/metrics` del backend) | **502** |
-| Restablecimiento y nuevas inferencias | **PASS** |
+| Disponibilidad backend de la muestra | **100.0%** |
+| Oportunidad backend de la muestra | **100.0%** |
+| Latencia p95 backend | **34.250 ms** |
+| Caída observada desde router (fuera del contador backend) | **HTTP 502** |
+| Transiciones verificadas | **2 promociones y 1 rollback** |
+| Slot final | **`candidate`** |
+
+Estas cifras proceden de [la misma ejecución aprobada](https://github.com/isaaccg88/PredictiveMaintenance-AI-FaseII/actions/runs/45218317927); no son promedios de un servicio permanente. El error 502 se conserva en el [smoke del router](fase3/evidence/router_failure.json), por separado de `/metrics` del backend apagado.
 <!-- F3-OPERATIONS-END -->
 
 [JSON original de auditoría](fase3/evidence/operations_audit.json) · [Fallo observado por el router](fase3/evidence/router_failure.json) · [Comprobación después del rollback](fase3/evidence/router_restored.json).
