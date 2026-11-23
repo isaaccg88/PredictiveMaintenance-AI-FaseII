@@ -1,0 +1,6 @@
+FROM python:3.11-slim
+WORKDIR /workspace
+COPY fase3/__init__.py fase3/router.py /workspace/fase3/
+ENV PYTHONPATH=/workspace GITOPS_STATE=/state/desired-state.json
+EXPOSE 8010
+CMD ["python","-m","fase3.router"]
