@@ -3,53 +3,52 @@ dashboard-1  | Collecting usage statistics. To deactivate, set browser.gatherUsa
 dashboard-1  | 
 dashboard-1  | 
 dashboard-1  |   You can now view your Streamlit app in your browser.
+dashboard-1  | 
+dashboard-1  |   URL: http://0.0.0.0:8510
+dashboard-1  | 
+api-stable-1  | INFO:     Started server process [1]
+api-stable-1  | INFO:     Waiting for application startup.
+api-stable-1  | INFO:     Application startup complete.
+api-stable-1  | INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
+api-stable-1  | INFO:     127.0.0.1:51388 - "GET /health HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.1:36380 - "GET /model/info HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.1:36396 - "GET /health HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.1:36400 - "GET /machines HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.1:36404 - "POST /predict HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.1:36420 - "POST /predict HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.1:36428 - "POST /predict HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.1:36436 - "GET /history HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.4:49280 - "GET /model/info HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.4:49284 - "GET /machines HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.4:49288 - "POST /predict HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.4:49296 - "POST /predict HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.4:49304 - "POST /predict HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.4:49312 - "GET /history HTTP/1.1" 200 OK
+api-stable-1  | INFO:     127.0.0.1:54326 - "GET /health HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.4:49322 - "GET /model/info HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.4:49332 - "GET /machines HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.4:49336 - "POST /predict HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.4:49346 - "POST /predict HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.4:49360 - "POST /predict HTTP/1.1" 200 OK
+api-stable-1  | INFO:     172.18.0.4:49376 - "GET /history HTTP/1.1" 200 OK
 api-candidate-1  | INFO:     Started server process [1]
 api-candidate-1  | INFO:     Waiting for application startup.
 api-candidate-1  | INFO:     Application startup complete.
 api-candidate-1  | INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
-api-candidate-1  | INFO:     127.0.0.1:56868 - "GET /health HTTP/1.1" 200 OK
-api-stable-1     | INFO:     Started server process [1]
-api-stable-1     | INFO:     Waiting for application startup.
-api-stable-1     | INFO:     Application startup complete.
-api-stable-1     | INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
-api-stable-1     | INFO:     127.0.0.1:56870 - "GET /health HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.1:39946 - "GET /model/info HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.1:39962 - "GET /health HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.1:39978 - "GET /machines HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.1:39992 - "POST /predict HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.1:40008 - "POST /predict HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.1:40012 - "POST /predict HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.1:40024 - "GET /history HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.4:43192 - "GET /model/info HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.4:43194 - "GET /machines HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.4:43202 - "POST /predict HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.4:43216 - "POST /predict HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.4:43220 - "POST /predict HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.4:43232 - "GET /history HTTP/1.1" 200 OK
-api-stable-1     | INFO:     127.0.0.1:43712 - "GET /health HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.4:43244 - "GET /model/info HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.4:43248 - "GET /machines HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.4:43252 - "POST /predict HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.4:43260 - "POST /predict HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.1:34236 - "GET /model/info HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.1:34242 - "GET /health HTTP/1.1" 200 OK
-dashboard-1      | 
-dashboard-1      |   URL: http://0.0.0.0:8510
-dashboard-1      | 
-api-stable-1     | INFO:     172.18.0.4:43268 - "POST /predict HTTP/1.1" 200 OK
-api-stable-1     | INFO:     172.18.0.4:43276 - "GET /history HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.1:34252 - "GET /machines HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.1:34256 - "POST /predict HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.1:34272 - "POST /predict HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.1:34284 - "POST /predict HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.1:34296 - "GET /history HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.4:52570 - "GET /model/info HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.4:52586 - "GET /machines HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.4:52588 - "POST /predict HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.4:52596 - "POST /predict HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.4:52608 - "POST /predict HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.4:52612 - "GET /history HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     127.0.0.1:43702 - "GET /health HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     127.0.0.1:51388 - "GET /health HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33316 - "GET /model/info HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33328 - "GET /health HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33344 - "GET /machines HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33358 - "POST /predict HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33368 - "POST /predict HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33374 - "POST /predict HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33382 - "GET /history HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.4:45482 - "GET /model/info HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.4:45486 - "GET /machines HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.4:45496 - "POST /predict HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.4:45512 - "POST /predict HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.4:45518 - "POST /predict HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.4:45526 - "GET /history HTTP/1.1" 200 OK
 api-candidate-1  | INFO:     Shutting down
 api-candidate-1  | INFO:     Waiting for application shutdown.
 api-candidate-1  | INFO:     Application shutdown complete.
@@ -58,18 +57,18 @@ api-candidate-1  | INFO:     Started server process [1]
 api-candidate-1  | INFO:     Waiting for application startup.
 api-candidate-1  | INFO:     Application startup complete.
 api-candidate-1  | INFO:     Uvicorn running on http://0.0.0.0:8008 (Press CTRL+C to quit)
-api-candidate-1  | INFO:     172.18.0.1:34310 - "GET /health HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.1:34314 - "GET /model/info HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.1:34322 - "GET /health HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.1:34326 - "GET /machines HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.1:34328 - "POST /predict HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.1:34338 - "POST /predict HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.1:34342 - "POST /predict HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.1:34352 - "GET /history HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.4:52622 - "GET /model/info HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.4:52624 - "GET /machines HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.4:52626 - "POST /predict HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.4:52640 - "POST /predict HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.4:52654 - "POST /predict HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.4:52660 - "GET /history HTTP/1.1" 200 OK
-api-candidate-1  | INFO:     172.18.0.4:52672 - "GET /metrics HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33400 - "GET /health HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33414 - "GET /model/info HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33422 - "GET /health HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33434 - "GET /machines HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33444 - "POST /predict HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33456 - "POST /predict HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33462 - "POST /predict HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.1:33474 - "GET /history HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.4:45540 - "GET /model/info HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.4:45548 - "GET /machines HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.4:45550 - "POST /predict HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.4:45552 - "POST /predict HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.4:45564 - "POST /predict HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.4:45572 - "GET /history HTTP/1.1" 200 OK
+api-candidate-1  | INFO:     172.18.0.4:45588 - "GET /metrics HTTP/1.1" 200 OK

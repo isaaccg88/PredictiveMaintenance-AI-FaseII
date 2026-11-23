@@ -10,23 +10,23 @@
   "predictions": [
     {
       "machine_id": "PM-049",
-      "trace_id": "50625926-16ef-431b-a4c7-7821b10e6485",
+      "trace_id": "7771a142-c546-4f57-9caf-e8c58a5641c4",
       "probability_72h": 0.456846,
-      "elapsed_ms": 34.698
+      "elapsed_ms": 19.949
     },
     {
       "machine_id": "PM-050",
-      "trace_id": "70eda872-7b5f-4a4c-bf8b-ee790c629b5b",
+      "trace_id": "cbbc38bb-d7be-46e3-906f-4a7a6d04d2d6",
       "probability_72h": 0.0,
-      "elapsed_ms": 31.885
+      "elapsed_ms": 28.516
     },
     {
       "machine_id": "PM-051",
-      "trace_id": "580257ef-7bf2-401a-aee1-53c40417c37a",
+      "trace_id": "1d064b88-e044-4b10-83ea-c711bb9f4c21",
       "probability_72h": 0.114736,
-      "elapsed_ms": 32.024
+      "elapsed_ms": 17.868
     }
   ],
-  "elapsed_ms": 123.32,
-  "at_utc": "2026-11-23T16:24:15.091603+00:00"
+  "elapsed_ms": 83.17,
+  "at_utc": "2026-11-23T16:33:00.702162+00:00"
 }

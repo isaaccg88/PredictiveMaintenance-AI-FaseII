@@ -2,7 +2,7 @@
   "scope": "SIMULATED_STAGING_GITHUB_ACTIONS",
   "synthetic_data": true,
   "industrial_deployment": false,
-  "observed_at_utc": "2026-11-23T16:24:15.590755+00:00",
+  "observed_at_utc": "2026-11-23T16:33:01.080035+00:00",
   "release_version": "v2-849ad06d182b",
   "model_sha256": "849ad06d182b07d578d3adf0117543953fda063a47ef56e8e60be3d3dfb3b79f",
   "active_slot": "candidate",
@@ -28,12 +28,12 @@
       "passed": true
     }
   },
-  "mlflow_run_id": "b95aa7efc5b24e22b0f4121d4b48ff7f",
+  "mlflow_run_id": "9ac4aada7af341369425d52c43544c31",
   "api_predict_samples": 12,
   "api_http_5xx": 0,
   "api_availability_ratio": 1.0,
   "api_timely_ratio": 1.0,
-  "api_latency_p95_ms": 43.411,
+  "api_latency_p95_ms": 27.022,
   "router_outage_observed_in_separate_smoke": true,
   "router_outage_status": 502,
   "rollback_events": 1,
